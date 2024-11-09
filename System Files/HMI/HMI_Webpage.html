@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irrigation Project HMI</title>
+    <link rel="stylesheet" href="HMI_CSS.css"></link>
+    
+    <!-- Original scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="HMI_Scripts.js"></script>
+    
+</head>
+<body>
+    <div class="title-bar">
+        <div class="time" id="time">2024-10-31 12:00:00</div>
+        <div class="title">Network Monitor</div>
+        <div class="wifi-icon" onclick="togglePopup(event)">
+            📶
+            <div class="wifi-popup" id="wifi-popup" onclick="event.stopPropagation()" style="display: none;">
+                <label for="ssid">SSID:</label>
+                <input type="text" id="ssid" placeholder="Enter SSID..."><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password..."><br>
+                <button onclick="submitInputs()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Button container -->
+    <div class="button-row">
+        <div class="button-space">
+            <button class="button">Button 1</button>
+            <div class="placeholder">Placeholder 1</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 2</button>
+            <div class="placeholder">Placeholder 2</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 3</button>
+            <div class="placeholder">Placeholder 3</div>
+        </div>
+    </div>
+
+    <!-- Chart container -->
+    <div class="chart-container">
+		<div class="chart-div">
+			<canvas id="myChart"></canvas>
+		</div>
+        <div class="button-div">
+            <button class="button">Action 1</button>
+            <button class="button">Action 2</button>
+            <button class="button">Action 3</button>
+        </div>
+    </div>
+</body>
+</html>

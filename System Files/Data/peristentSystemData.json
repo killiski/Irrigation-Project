@@ -1,0 +1,44 @@
+{
+    "System Data": 
+    {
+        "Configured Zones": 1,
+        "Logs": [],
+        "Time":
+        {
+            "LastNTP_Connection": "18:00 24-11-07",
+            "Start SZN": 150,
+            "End SZN": 270
+        }
+    },
+    "Zones": 
+    [ 
+        {
+            "MoistureManagment":
+            {
+                "Attached Soil Sensors": ["Sensor1", "Sensor2"],
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits":
+                {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },    
+            "BD Inhibiting":
+            {
+                "Attached BD Sensors": ["Sensor1"],
+                "BD enable": true,
+                "BD alarm alert": 30
+            },
+            
+            "Schedule": 
+            {
+                "On": true,
+                "Times": ["09:00", "17:00"],
+                "Enabled": false
+            }
+        }
+    ]
+
+}
