@@ -1,0 +1,121 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>24-Hour Graph with Chart.js - X-Axis Only Zooming and Panning</title>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script> <!-- Add this line -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        canvas {
+            max-width: 800px;
+            margin: auto;
+            border: 2px solid #ccc; /* Bounding box */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    <script>
+        // Generate random data for 24 hours
+        const labels = Array.from({ length: 25 }, (_, hour) => new Date(2024, 0, 1, hour)); // Use Date objects directly
+        const data = Array.from({ length: 25 }, () => 20 + Math.random() * 10); // Values between 20 and 30
+
+        // Create the chart
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Random Data',
+                    data: data,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            tooltipFormat: 'HH:mm',
+                            displayFormats: {
+                                hour: 'HH:mm' // Format for displaying hours
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Time (24-hour format)',
+                        },
+                        min: new Date(2024, 0, 1, 0),
+                        max: new Date(2024, 0, 1, 24),
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Value (%)',
+                        },
+                        min: 0, // Fixed Y min
+                        max: 100, // Fixed Y max
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    zoom: {
+                        limits: {
+                            x: { min: new Date(2024, 0, 1, 0), max: new Date(2024, 0, 1, 24), minRange: 3600000 }, // 1 hour in milliseconds
+                            y: { min: 0, max: 100, minRange: 10 }
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: 'x', // Enable panning only on the x-axis
+                            onPanStart({ chart, point }) {
+                                console.log("Pan Start:", point);
+                                const area = chart.chartArea;
+                                const w25 = area.width * 0.25;
+                                const h25 = area.height * 0.25;
+                                if (point.x < area.left + w25 || point.x > area.right - w25 || 
+                                    point.y < area.top + h25 || point.y > area.bottom - h25) {
+                                    return false; // abort panning
+                                }
+                                return true; // allow panning
+                            },
+                            onPan({ chart }) {
+                                console.log("Panning...");
+                            },
+                            onPanComplete({ chart }) {
+                                console.log("Pan Complete");
+                            },
+                            onPanRejected({ chart }) {
+                                console.log("Pan Rejected");
+                            }
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true, // Enable pinch zoom
+                            },
+                            mode: 'x', // Enable zooming only on the x-axis
+                        },
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{
+    "System Data": {
+        "Configured Zones": 2,
+        "System Name": "myIrrigation_System",
+        "System Disable": true,
+        "Mode": "Manual",
+        "Simultaneous Watering": false,
+        "Sample Rate": 1,
+        "log pointer": 40,
+        "24hr sample pointer": 248,
+        "Sensors": {
+            "Soil Moiture": 3,
+            "BD Detection": 2
+        },
+        "Time": {
+            "LastNTP_Connection": "",
+            "Start SZN": 0,
+            "End SZN": 0
+        }
+    },
+    "Zones": [
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor1"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD enable": true,
+                "BD alarm alert": 30
+            },
+            "Schedule": {
+                "On": true,
+                "Times": [
+                    "00:00",
+                    "24:00"
+                ],
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor2"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD enable": true,
+                "BD alarm alert": 30
+            },
+            "Schedule": {
+                "On": true,
+                "Times": [
+                    "00:00",
+                    "24:00"
+                ],
+                "Enabled": false
+            }
+        }
+    ]
+}

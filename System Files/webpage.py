@@ -5,6 +5,123 @@ import time
 from networkMan import scan_networks, connect_to_wifi
 
 
+
+
+# wifi scan
+
+
+# wifi connect
+
+
+# zone requests
+
+
+
+# BD requests
+
+
+
+# System Requests
+    # switch for
+        # configured zones
+        # get new Logs Limit
+
+
+
+# Periodic Request
+    # 
+
+
+
+
+
+
+def web_server():
+    data = load_data()
+
+    addr = socket.getaddrinfo('0.0.0.0', 80)[0][4]
+    s = socket.socket()
+    s.bind(addr)
+    s.listen(3)
+    
+    print("Listening on", addr)
+
+    while True:
+        try:
+            cl, addr = s.accept()
+            print('Client connected from', addr)
+
+            requestRaw = cl.recv(1024)
+            request = requestRaw.decode()
+
+            if '/updateWifi' in request:
+                # Parse the incoming data for SSID and password
+                data_str = request.split('\r\n\r\n')[1].split('\r\n')[0]
+                ssid = data_str.split('&')[0].split('=')[1]
+                password = data_str.split('&')[1].split('=')[1]
+                connect_to_wifi(ssid, password)  # Add function to connect to the selected Wi-Fi
+                response = json.dumps({"status": "connected", "ssid": ssid})
+            elif '/valuesUpdate' in request:
+                # Parse the incoming data for slider values
+                data_str = request.split('\r\n\r\n')[1].split('\r\n')[0]
+                value1 = int(data_str.split('&')[0].split('=')[1])
+                value2 = int(data_str.split('&')[1].split('=')[1])
+                
+                # Update data with the new slider values
+                data['value1'] = value1
+                data['value2'] = value2
+                save_data(data)
+                response = json.dumps({"value1": value1, "value2": value2})
+            elif '/values' in request:
+                response = json.dumps(data)
+            elif '/scan' in request:
+                networks = scan_networks()  # Function to get available networks
+                response = json.dumps({"networks": networks})
+            else:
+                response = html()
+
+            cl.send('HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n')
+            cl.send(response.encode())
+            cl.close()
+        except Exception as e:
+            print("Error:", e)
+            cl.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------- old code ---------------------------------------------------------------
+
+
 #Data file = /Data/data.json
 
 
@@ -220,45 +337,3 @@ def webpage_deploy():
         web_server()
 
 
-
-
-
-
-
-
-
-
-
-"""
-"SoilMoistureSensors": [[[0.0, 0, 0] * 10,] * 5], # 5 possible zones with 10 max sensors each. each sensor has a location in the yard represented by the last two values in the sensor array element
-"BodyDetectionSensors": [[False, 0] * 5], #five possible body detection sensors, with zone id
-"Mode": "Manual", #or automatic
-"waterQueue" : [[0] * 5],
-"DateTime": {
-    "localDate": "YYYY-MM-DD",
-    "localTime": "HH:mm:ss",
-    "Season": "winter"
-},
-"Zones": [['name', False, 0, 0] * 5], # 5 poissible zones with a name, watering request rectangluar area
-"Esp32APCred": {
-    "ssid": "",
-    "password": ""
-
-},
-"Schedule": { # this is getting way to big
-    "Daily": {
-        "startHour": 0,
-        "endHour": 23, # time
-        "timeSlots": [["7:00", "9:30"], ["12:00", "13:00"], ["14:30", "15:30"], ["16:30", "19:30"]] #pick one this one is more detailed
-    },
-    "Seasonal": {
-        "winterStart": 330,
-        "springStart": 80,
-        "summerStart": 150,
-        "fallStart": 240,
-        "springSP": 0.2 * 100,
-        "summerSP": 0.25 * 100,
-        "fallSP": 0.2 * 100,
-
-    }
-}"""

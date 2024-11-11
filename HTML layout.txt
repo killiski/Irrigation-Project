@@ -1,0 +1,11 @@
+title bar container
+
+time | title | wifi icon
+
+
+    wifi icon
+        popup (first child)  
+
+manual interaction dashboard container
+
+| mode toggle | zone 1 d 

@@ -129,3 +129,94 @@ let myChart; // Declare the chart variable to access it later
 			}
 		});
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+// --------------------------------------------------------- 
+// --------------------------------------------------------- 
+// --------------------------------------------------------- 
+// --------------------------------------------------------- 
+// --------------------------------------------------------- 
+
+    function toggleWifiInput() { // show wifi pop up => i want it to display over the page not inline
+        const wifiInputDiv = document.getElementById("wifiInput");
+        wifiInputDiv.style.display = wifiInputDiv.style.display === "none" ? "block" : "none";
+    }
+
+    function updateWifiValues() { // input wifi values => I want to clear input boxes after to show feedback and disable submit until response
+        const ssid = document.getElementById("ssid").value;
+        const password = document.getElementById("password").value;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/updateWifi", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                alert("Connected to " + response.ssid);
+                fetchValues(); // Fetch updated values
+            }
+        };
+        xhr.send(`ssid=${ssid}&password=${password}`);
+    }
+
+    function fetchValues() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "/values", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                // Display fetched values
+                document.getElementById("displayValue1").innerText = response.value1;
+                document.getElementById("displayValue2").innerText = response.value2;
+
+                // Set slider values based on fetched values
+                // document.getElementById("sliderValue1").value = response.value1;
+                // document.getElementById("sliderValue2").value = response.value2;
+            }
+        };
+        xhr.send();
+    }
+
+    function scanNetworks() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "/scan", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                const ssidSelector = document.getElementById("ssid");
+                ssidSelector.innerHTML = ''; // Clear previous SSIDs
+                response.networks.forEach(function(network) {
+                    const option = document.createElement('option');
+                    option.value = network;
+                    option.textContent = network;
+                    ssidSelector.appendChild(option);
+                });
+            }
+        };
+        xhr.send();
+    }
+
+    function updateStoredValues() {
+        const value1 = document.getElementById("sliderValue1").value;
+        const value2 = document.getElementById("sliderValue2").value;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/valuesUpdate", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                fetchValues(); // Refresh displayed values after update
+            }
+        };
+        xhr.send(`value1=${value1}&value2=${value2}`); // Send only slider values
+    }
+
+    setInterval(fetchValues, 5000);

@@ -2,7 +2,13 @@
     "System Data": 
     {
         "Configured Zones": 1,
-        "Logs": [],
+        "System Name": "myIrrigation_System",
+        "System Disable": true,
+        "Mode": "Manual",
+        "Simultaneous Watering": false,
+        "Sample Rate": "1",
+        "log pointer": "40",
+        "24hr sample pointer": "248",
         "Time":
         {
             "LastNTP_Connection": "18:00 24-11-07",
@@ -16,6 +22,7 @@
             "MoistureManagment":
             {
                 "Attached Soil Sensors": ["Sensor1", "Sensor2"],
+                "Manual Water Time": 20,
                 "Watering Timeout Minutes": 30,
                 "Timeout Cooldown": 20,
                 "Watering Disabled": false,

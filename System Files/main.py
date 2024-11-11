@@ -12,11 +12,26 @@ systemParamters = {
     "WPA2ENT": False,
 }
 
+solenoidRelays = 3
+soilMoistureSensors = solenoidRelays
+BDSensors= 2
 
 
 
 
 
+class MoistureSensor:
+  def __init__(self, pin):
+    self.pin = pin
+
+
+
+class Logs:
+   def __init__(self, pin):
+    self.pin = pin
+
+
+# we will use a circular buffer for logs and 24hour samples
 
 
 # Main function to initiate the connection and access point setup

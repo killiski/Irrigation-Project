@@ -1,0 +1,179 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title Bar Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .title-bar {
+            position: relative;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+            height: 25px; /* Set a fixed height */
+        }
+        .time {
+            position: absolute;
+            left: 20px; /* Position from the left */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for vertical centering */
+        }
+        .title {
+            position: absolute;
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for horizontal centering */
+            font-weight: bold;
+        }
+        .wifi-icon {
+            position: absolute;
+            right: 20px; /* Position from the right */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for vertical centering */
+            cursor: pointer;
+        }
+        .wifi-popup {
+            display: none; /* Start hidden */
+            position: absolute;
+            top: 30px;
+            right: 0;
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            transition: opacity 0.3s ease;
+            min-width: 200px; /* Set minimum width */
+        }
+        .wifi-popup input {
+            width: calc(100% - 100px); /* Adjust width to leave space for labels */
+            margin-bottom: 10px; /* Adds spacing between inputs */
+            padding: 5px;
+        }
+        .wifi-popup label {
+            width: 80px; /* Set a fixed width for labels */
+            display: inline-block; /* Align labels next to inputs */
+            margin-right: 10px; /* Space between label and input */
+        }
+        .wifi-popup button {
+            width: 100%;
+            padding: 5px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .wifi-popup button:hover {
+            background-color: #218838;
+        }
+
+        /* New styles for the button row */
+        .button-row {
+            display: flex;
+            justify-content: center; /* Center the button row */
+            margin: 20px 0; /* Add margin for spacing */
+        }
+        .button-space {
+            flex: 1;
+            margin: 0 10px; /* Add spacing between button spaces */
+            text-align: center; /* Center the content inside button space */
+        }
+        .button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%; /* Full width for buttons */
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .placeholder {
+            margin-top: 5px; /* Space above the placeholder */
+            font-size: 14px; /* Smaller font for the placeholder */
+            color: #555; /* Lighter color for the placeholder */
+        }
+    </style>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toISOString().slice(0, 19).replace('T', ' ');
+            document.getElementById('time').textContent = formattedTime;
+        }
+
+        function togglePopup(event) {
+            const popup = document.getElementById('wifi-popup');
+            // Toggle popup visibility
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+            // Prevent click event from closing the popup if clicking inside it
+            event.stopPropagation();
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('wifi-popup');
+            popup.style.display = 'none';
+        }
+
+        function submitInputs() {
+            const inputs = document.querySelectorAll('.wifi-popup input');
+            inputs.forEach(input => {
+                console.log(input.value); // You can change this to whatever you want to do with the inputs
+            });
+            //closePopup(); // Close the popup after submission
+        }
+
+        setInterval(updateTime, 1000); // Update time every second
+        window.onload = () => {
+            updateTime();
+            window.addEventListener('click', closePopup); // Close popup on outside click
+        };
+    </script>
+</head>
+<body>
+    <div class="title-bar">
+        <div class="time" id="time">2024-10-31 15:46:57</div>
+        <div class="title">Title Here</div>
+        <div class="wifi-icon" onclick="togglePopup(event)">
+            📶
+            <div class="wifi-popup" id="wifi-popup" onclick="event.stopPropagation()" style="display: none;">
+                <label for="ssid">SSID:</label>
+                <input type="text" id="ssid" placeholder="Enter SSID..."><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password..."><br>
+                <button onclick="submitInputs()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Button Row Section -->
+    <div class="button-row">
+        <div class="button-space">
+            <button class="button">Button 1</button>
+            <div class="placeholder">Placeholder 1</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 2</button>
+            <div class="placeholder">Placeholder 2</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 3</button>
+            <div class="placeholder">Placeholder 3</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 4</button>
+            <div class="placeholder">Placeholder 4</div>
+        </div>
+        <div class="button-space">
+            <button class="button">Button 5</button>
+            <div class="placeholder">Placeholder 5</div>
+        </div>
+    </div>
+
+</body></html>

@@ -3,7 +3,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Irrigation Project HMI</title>
-    <link rel="stylesheet" href="HMI_CSS.css"></link>
+    <!-- link rel="stylesheet" href="HMI_CSS.css"--></link>
+    <!-- script src="HMI_Scripts.js"--></script>
     
     <!-- Original scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
@@ -11,18 +12,366 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-    <script src="HMI_Scripts.js"></script>
     
+    
+    <script>
+let myChart; // Declare the chart variable to access it later
+
+	
+	
+function updateTime() {
+    const now = new Date();
+    const formattedTime = now.toISOString().slice(0, 19).replace('T', ' ');
+    document.getElementById('time').textContent = formattedTime;
+}
+
+function togglePopup(event) {
+    const popup = document.getElementById('wifi-popup');
+    // Toggle popup visibility
+    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+    // Prevent click event from closing the popup if clicking inside it
+    event.stopPropagation();
+}
+
+function closePopup() {
+    const popup = document.getElementById('wifi-popup');
+    popup.style.display = 'none';
+}
+
+function submitInputs() {
+    const inputs = document.querySelectorAll('.wifi-popup input');
+    inputs.forEach(input => {
+        console.log(input.value); // You can change this to whatever you want to do with the inputs
+    });
+    closePopup(); // Close the popup after submission
+}
+
+
+
+// Create the chart
+window.onload = () => {
+    updateTime();
+    setInterval(updateTime, 1000); // Update time every second
+    
+    const canvas = document.getElementById('myChart');
+    
+
+    const labels = Array.from({ length: 25 }, (_, hour) => new Date(2024, 0, 1, hour)); // Use Date objects directly
+    const data = Array.from({ length: 25 }, () => 20 + Math.random() * 30); // Values between 20 and 30
+
+
+    const ctx = canvas.getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Random Data',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Allow custom aspect ratio
+
+            
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        tooltipFormat: 'HH:mm',
+                        displayFormats: {
+                            hour: 'HH:mm' // Format for displaying hours
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time (24-hour format)',
+                        font: {
+                            size: 16 // Set title font size
+                        }
+                    },
+                    min: new Date(2024, 0, 1, 0),
+                    max: new Date(2024, 0, 1, 24),
+                },
+                y: {
+                    type: 'linear',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Value (%)',
+                        font: {
+                            size: 20 // Set title font size
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 16 // Set y-axis tick font size
+                        },
+                        
+                    },
+                },
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                zoom: {
+                    limits: {
+                        x: { min: new Date(2024, 0, 1, 0), max: new Date(2024, 0, 1, 24), minRange: 3600000 }, // 1 hour in milliseconds
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'x', // Enable panning only on the x-axis
+                        onPan({ chart, event }) {
+                            console.log("Panning:", event);
+                        }
+                    },
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true,
+                        },
+                        mode: 'x',
+                    }
+                }
+            }
+        }
+    });
+}
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <style>
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+    background-color: #c2c2c2;
+}
+
+/*--------------------------- Title Bar -------------------*/
+.title-bar {
+    position: relative;
+    background-color: #333;
+    color: #fff;
+    font-size: 16px;
+    height: 50px; /* Set a fixed height */
+}
+.time {
+    position: absolute;
+    left: 20px; /* Position from the left */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust for vertical centering */
+    width: 25%;
+}
+@media (max-width: 400px) {
+    .time{
+        font-size: 0.5rem;
+    }
+}
+
+.title {
+    position: absolute;
+    left: 50%; /* Center horizontally */
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+}
+
+.wifi-icon {
+    position: absolute;
+    right: 1%; /* Position from the right */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust for vertical centering */
+    cursor: pointer;
+}
+.wifi-popup {
+    display: none; /* Start hidden */
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    transition: opacity 0.3s ease;
+    min-width: 200px; /* Set minimum width */
+}
+.wifi-popup input {
+    width: calc(100% - 100px); /* Adjust width to leave space for labels */
+    margin-bottom: 10px; /* Adds spacing between inputs */
+    margin-top: 10px;
+    padding: 5px;
+}
+.wifi-popup label {
+    width: 80px; /* Set a fixed width for labels */
+    display: inline-block; /* Align labels next to inputs */
+    margin-right: 10px; /* Space between label and input */
+}
+.wifi-popup button {
+    width: 100%;
+    padding: 5px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.wifi-popup button:hover {
+    background-color: #218838;
+}
+
+
+
+/*--------------system status dash board--------------*/
+.button-row {
+    display: flex;
+    justify-content: center; /* Center the button row */
+    margin: 20px 0; /* Add margin for spacing */
+}
+.button-space {
+    flex: 1;
+    margin: 0 10px; /* Add spacing between button spaces */
+    text-align: center; /* Center the content inside button space */
+}
+.button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    /* width: 100%;  Full width for buttons */
+}
+.button:hover {
+    background-color: #0056b3;
+}
+.placeholder {
+    margin-top: 5px; /* Space above the placeholder */
+    font-size: 14px; /* Smaller font for the placeholder */
+    color: #555; /* Lighter color for the placeholder */
+}
+
+
+
+/*-----------------chart Flex display-------------------------*/
+
+/* Styles for Chart.js */
+.chart-container {
+    display: flex;
+    max-width: 100%;
+    height: 60vh; /* Default height for larger screens */
+}
+
+/* Portrait mode for mobile devices */
+@media (max-width: 768px) and (orientation: portrait) {
+    .chart-container {
+        height: 30vh; /* Height for portrait mode on mobile devices */
+    }
+}
+
+/* Landscape mode for mobile devices or tablets */
+@media (max-width: 768px) and (orientation: landscape) {
+    .chart-container {
+        height: 60vh; /* Revert to default height in landscape mode */
+    }
+}
+
+.button-div {
+    flex: 0 0 30%;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.chart-div{
+    flex: 0 0 70% !important;
+}
+
+
+#myChart {
+    max-width: 100% !important;
+    /* width: 75% !important; */
+    height: 100% !important;
+}
+
+
+
+/*---------------- sys_config_log div------------------------*/
+
+
+/* config button 20% */
+/* log button pop up 20% */
+/* download button */
+
+    </style>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 <body>
     <div class="title-bar">
         <div class="time" id="time">2024-10-31 12:00:00</div>
-        <div class="title">Network Monitor</div>
+        <div class="title">Irrigation System</div>
         <div class="wifi-icon" onclick="togglePopup(event)">
             📶
             <div class="wifi-popup" id="wifi-popup" onclick="event.stopPropagation()" style="display: none;">
-                <label for="ssid">SSID:</label>
-                <input type="text" id="ssid" placeholder="Enter SSID..."><br>
+                <label>Network: </label>
+                <span id="current-network-name">Not connected</span>
+                <label onclick="scanNetworks()">SSID:</label>
+                <select id="ssid" placeholder="Enter SSID..."></select>
                 <label for="password">Password:</label>
                 <input type="password" id="password" placeholder="Enter password..."><br>
                 <button onclick="submitInputs()">Submit</button>
