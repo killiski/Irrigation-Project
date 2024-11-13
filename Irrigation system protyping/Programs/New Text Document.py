@@ -75,7 +75,7 @@ def load_json(file_path="irrigation_system_config.json"):
     return data
 
 # Example usage
-create_irrigation_system_config(4)
+create_irrigation_system_config(1)
 
 myData = load_json()
 print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])

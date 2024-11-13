@@ -13,7 +13,6 @@ HOME_SSID = "BELL904"
 
 def connect_to_wifi(ssid, password):
     """Connect to the specified Wi-Fi network."""
-    import network
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     wlan.connect(ssid, password)

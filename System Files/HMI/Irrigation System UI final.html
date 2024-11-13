@@ -121,7 +121,7 @@ persistentSystemData = JSON.parse(jsonData)
 		.main-interface-container { display: flex; justify-content: space-between; width: 100%; }
 		#mode-button-container, #zone-control-container { flex: 1; background: #ccc; margin: 0.5rem; display: flex; align-items: center; justify-content: center; justify-content: space-around; min-height: 30px;}
 		#mode-button-container { flex: 0 0 15% !important; }
-		#mode-button:active { opacity: 0.5; !important; }
+		#mode-button:active { opacity: 0.5 !important; }
 		#zone-control-container { background: #ddd; }
 		
 		@media (max-aspect-ratio: 1/1) { .main-interface-container { flex-direction: column; } }
@@ -728,7 +728,7 @@ persistentSystemData = JSON.parse(jsonData)
 		// Function to send an HTTP request to the server
 		function sendUpdateRequest() {
 			const request = new XMLHttpRequest();
-			request.open("POST", "/update-config", true); // Adjust URL as needed for your server
+			request.open("POST", "/configUpdate", true); // Adjust URL as needed for your server
 			request.setRequestHeader("Content-Type", "application/json");
 
 			// Send the updated persistentSystemData as a JSON string

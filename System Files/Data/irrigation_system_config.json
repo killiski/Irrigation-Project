@@ -1,50 +1,25 @@
 {
     "System Data": {
-        "Configured Zones": 2,
+        "Configured Zones": 1,
         "System Name": "myIrrigation_System",
         "System Disable": true,
         "Simultaneous Watering": false,
         "Hourly Samples": 1,
         "Sensors": {
-            "Soil Moisture": 2,
+            "Soil Moiture": 3,
             "BD Detection": 2
         },
         "Time": {
             "LastNTP_Connection": "",
-            "Start SZN": 250,
-            "End SZN": 300
+            "Start SZN": 0,
+            "End SZN": 365
         }
     },
     "Zones": [
         {
             "MoistureManagement": {
                 "Attached Soil Sensors": [
-                    "Sensor 1"
-                ],
-                "Manual Water Time": 20,
-                "Watering Timeout Minutes": 30,
-                "Timeout Cooldown": 20,
-                "Watering Disabled": false,
-                "Control Limits": {
-                    "UCL": 25,
-                    "LCL": 20
-                }
-            },
-            "BD Inhibiting": {
-                "Attached BD Sensors": ["Sensor 1"],
-                "BD Enable": true,
-                "BD Alarm Alert": 30
-            },
-            "Schedule": {
-                "On Time": "00:00",
-                "Off Time": "23:59",
-                "Enabled": false
-            }
-        },
-        {
-            "MoistureManagement": {
-                "Attached Soil Sensors": [
-                    "Sensor 2"
+                    "Sensor1"
                 ],
                 "Manual Water Time": 20,
                 "Watering Timeout Minutes": 30,
@@ -63,7 +38,7 @@
             "Schedule": {
                 "On Time": "00:00",
                 "Off Time": "23:59",
-                "Enabled": true
+                "Enabled": false
             }
         }
     ]

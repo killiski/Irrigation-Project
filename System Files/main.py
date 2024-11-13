@@ -1,34 +1,14 @@
-import networkMan
 import time
 import sys
 import select
 import _thread
-import webpage
-
-
-systemParamters = {
-    "sampleFrequency": 2,
-    "24Hsamples": 48,
-    "WPA2ENT": False,
-}
-
-solenoidRelays = 3
-soilMoistureSensors = solenoidRelays
-BDSensors= 2
+from HMI import networkMan, webServer
+from Data import globalData
+import uasyncio as asyncio
 
 
 
 
-
-class MoistureSensor:
-  def __init__(self, pin):
-    self.pin = pin
-
-
-
-class Logs:
-   def __init__(self, pin):
-    self.pin = pin
 
 
 # we will use a circular buffer for logs and 24hour samples
@@ -39,14 +19,13 @@ if __name__ == '__main__':
     networkMan.setup_access_point() #so solid
     #initilize system data
     #initilize web page thread
+    #asyncio.run(webServer.start_server())
+    #webServer.start_server()
+    _thread.start_new_thread(webServer.web_server_thread, ())
     
 
 
 
-
-
-    
-    _thread.start_new_thread(webpage.webpage_deploy, ())
 
     while True:
         # run sampling and control
