@@ -1,0 +1,18 @@
+type, time, desc
+watering, 19:00, Zone 1 watering timeout
+network, 18:00, Connection lost going in ap mode - scheduling and seasons disabled
+mode, NA, auto mode enabled
+network, 17:00, Connection started going in sta mode
+BDetect, 16:00, BD Sensor1 on for longer than 2 hours - you may want to inhibit BD
+system, 15:00, configuration changed (var)
+mode, 14:00, manual mode enabled
+system, 13:00, system disabled
+system, 12:00, established ntp connection
+system, 11:00, season ended
+system, 10:00, season started
+watering, 19:00, Zone 1 lower limit time vilolation - consider manually watering
+watering, 19:00, Zone 1 upper limit time vilolation - consider disabling the zone watering
+
+
+
+

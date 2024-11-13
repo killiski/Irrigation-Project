@@ -1,6 +1,5 @@
 import os
 import json
-from datetime import datetime
 
 def create_irrigation_system_config(num_zones, file_path="irrigation_system_config.json"):
     # Check if the file exists
@@ -14,16 +13,15 @@ def create_irrigation_system_config(num_zones, file_path="irrigation_system_conf
             "Configured Zones": num_zones,
             "System Name": "myIrrigation_System",
             "System Disable": True,
+            "Mode": "Manual",
             "Simultaneous Watering": False,
-            "Hourly Samples": 1,
-            "Sensors": {
-                "Soil Moiture": 3,
-                "BD Detection": 2
-            },
+            "Sample Rate": 1,
+            "log pointer": 40,
+            "24hr sample pointer": 248,
             "Time": {
                 "LastNTP_Connection": "",
                 "Start SZN": 0,
-                "End SZN": 365
+                "End SZN": 0
             }
         },
         "Zones": []
@@ -45,18 +43,17 @@ def create_irrigation_system_config(num_zones, file_path="irrigation_system_conf
             },
             "BD Inhibiting": {
                 "Attached BD Sensors": [ ],
-                "BD Enable": True,
-                "BD Alarm Alert": 30
+                "BD enable": True,
+                "BD alarm alert": 30
             },
             "Schedule": {
-                "On Time": "00:00",
-                "Off Time": "23:59",
+                "On": True,
+                "Times": ["00:00", "24:00"],
                 "Enabled": False
             }
         }
 
         # Update the sensor names to match the zone index
-        #zone_data["MoistureManagment"]["Attached Soil Sensors"] = [f"Sensor{i + 1}" for i in range(num_zones)]
         system_data["Zones"].append(zone_data)
 
     # Write the data to a JSON file
@@ -75,8 +72,7 @@ def load_json(file_path="irrigation_system_config.json"):
     return data
 
 # Example usage
-create_irrigation_system_config(4)
+#create_irrigation_system_config(2)
 
-myData = load_json()
-print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])
-
+#myData = load_json()
+#print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])

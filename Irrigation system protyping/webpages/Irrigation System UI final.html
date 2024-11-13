@@ -1,0 +1,759 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irrigation System UI</title>
+	<script id="persistentSystemData">
+jsonData = `{
+    "System Data": {
+        "Configured Zones": 2,
+        "System Name": "myIrrigation_System",
+        "System Disable": true,
+        "Simultaneous Watering": false,
+        "Hourly Samples": 1,
+        "Sensors": {
+            "Soil Moisture": 2,
+            "BD Detection": 2
+        },
+        "Time": {
+            "LastNTP_Connection": "",
+            "Start SZN": 250,
+            "End SZN": 300
+        }
+    },
+    "Zones": [
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor 1"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": ["Sensor 1"],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor 2"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": true
+            }
+        }
+    ]
+}`
+	
+	
+persistentSystemData = JSON.parse(jsonData)
+	</script>
+	
+	<style>
+        * { margin: 0; }
+        
+		@media (min-aspect-ratio: 1/1) {
+			:root {
+				--topOfOverlay: 10%;
+				/* --canvas-height: 50%; */
+			}
+		}
+		
+		@media (max-aspect-ratio: 1/1) {
+			:root { 
+				--topOfOverlay: 5%;
+				/* --canvas-height: 60%; */
+			}
+		}
+		
+		
+		body, html { background: #e0e0e0; font-family: Arial, sans-serif; }
+
+        .title-bar {height: var(--topOfOverlay); background: #444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+		
+		
+        
+        .title-bar .time, .title-bar .title, .title-bar .wifi { position: absolute; display: flex; align-items: center; }
+        .time { left: 1rem; font-size: 1rem; }
+        .wifi { right: 1rem; font-size: 1.5rem; cursor: pointer; }
+
+        .overlay { display: none; position: absolute; width: 100%; height: 100%; background: rgba(255, 255, 255, 1); }
+        
+		.close-btn { position: absolute; top: 1rem; right: 1rem; cursor: pointer; color: #fff; font-size: 1.5rem; }
+
+		
+        .page > div { margin-bottom: 1rem; }
+		.page{max-height: 100vh}
+		
+		#page1 { width: 100%;}
+		#page2 > .page {padding: 1rem}
+		
+
+		.main-interface-container { display: flex; justify-content: space-between; width: 100%; }
+		#mode-button-container, #zone-control-container { flex: 1; background: #ccc; margin: 0.5rem; display: flex; align-items: center; justify-content: center; justify-content: space-around; min-height: 30px;}
+		#mode-button-container { flex: 0 0 15% !important; }
+		#mode-button:active { opacity: 0.5; !important; }
+		#zone-control-container { background: #ddd; }
+		
+		@media (max-aspect-ratio: 1/1) { .main-interface-container { flex-direction: column; } }
+	
+
+
+
+
+		.zone-dashboard { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; justify-content: space-around; }
+        .zone-monitor-unit { display: flex; flex-direction: column; align-items: center; justify-content: space-between; max-width: 250px; max-height: 300px; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background: #f5f5f5; }
+        
+		@media (max-aspect-ratio: 1/1) { .zone-monitor-unit { max-width: 200px; } }
+		
+		.zone-name { background: #444; color: white; padding: 0.5rem; width: 100%; text-align: center; font-size: 1.2rem; font-weight: bold; }
+        .zone-status-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%; }
+        .status, .action-button { font-size: 0.9rem; width: 45%; margin: 0.5rem 0; display: flex; align-items: center; justify-content: center; }
+        .action-button { padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .action-button:hover { background: #45a049; }
+        .moisture { font-size: 0.9rem; text-align: center;}
+
+
+
+
+
+
+		.canvas-container { display: flex; background: #f5f5f5; margin: 1rem; }
+        .canvas-container canvas { max-width: 100%; max-height: 100%; }
+
+
+
+		
+
+
+		.zone-config-container { display: flex; gap: 1rem; background-color: #e0e0e0; padding: 1rem; }
+		.zone-config-segment { display: flex; flex-direction: column; flex-grow: 1; background-color: #f3f4f6; padding: 1rem; border: 1px solid #ccc; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1); }
+		.zone-config-segment label { margin: 0.5rem 0 0.5rem; }
+		.zone-config-segment input { width: 100%; padding: 0.4rem; margin-bottom: 0.8rem; border: 1px solid #ccc; border-radius: 4px; }
+		.inline-pair { display: flex; gap: 1rem; align-items: center;}
+		.inline-pair label, .inline-pair input { flex: 1 }
+
+
+		@media (max-aspect-ratio: 1/1) and (max-width: 900px){
+			.zone-config-container{display: block;}
+		}
+		@media (min-aspect-ratio: 1/1) and (max-height: 900px){
+			.zone-config-container{font-size: 0.8rem}
+		}
+		
+		
+		.log-scroll-container { width: 60%;  height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 5px;}
+
+
+
+
+        /* Navigation Button Styling */
+        .nav-button {
+            padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; background: #444; color: #fff; border: none; border-radius: 5px; margin: 1rem;
+        }
+        .nav-button:hover { background: #555; }
+
+        .nav-btn-container { display: flex; justify-content: flex-start; width: 100%; }
+        .nav-btn-container button:nth-child(2n) { margin-left: auto; } /* Align every second button to the right */
+
+        /* Zone Config Button Container */
+        .zone-config-buttons {display: flex; justify-content: center; width: 100%; margin-top: 1rem; }
+		
+		.submissionBtnSty { padding: 0.5rem 1rem; font-size: 1rem; background: black; color: white; border: none; border-radius: 5px; cursor: pointer; }
+		.submissionBtnSty:hover { background: #333; }
+
+        /* Modal Styling */
+        .wifi-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border: 1px solid #ccc; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); z-index: 10; width: 300px; }
+        .wifi-modal input, .wifi-modal select, .wifi-modal button { width: 100%; margin: 10px 0; padding: 8px; }
+        .wifi-modal button { background: #28a745; color: #fff; border: none; cursor: pointer; }
+        .wifi-modal .close-btn-modal { position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; color: #ccc; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div id="page1" class="overlay" style="display: block;">
+        <div class="title-bar">
+            <div class="time" id="time">03:39 PM</div>
+            <div class="title">System Monitor</div>
+            <div class="wifi" onclick="showModal()">📶</div>
+        </div>    
+        <div class="page">
+			<div class="main-interface-container">
+                <div id="mode-button-container" style="background: #ccc; text-align: center">
+                    <!-- Content for manual button container can go here -->
+                    <button id="mode-button" style="width: 100%; height: 80%; background-color: #8fd1f7">Toggle for ...</button>
+                </div>
+                <div id="zone-control-container" style="background: #ddd;">
+                     <div class="zone-dashboard"><div class="zone-monitor-unit">
+							<div class="zone-name">Zone 1</div>
+							<div class="zone-status-container">
+								<div class="status">Watering: <span>Active</span></div>
+								<div class="status">Enabled: <span>Yes</span></div>
+								<div class="status">Inhibited: <span>No</span></div>
+								<button class="action-button">Toggle/Cycle</button>
+							</div>
+							<div class="moisture">Moisture: <span>45%</span></div>
+                </div><div class="zone-monitor-unit">
+							<div class="zone-name">Zone 1</div>
+							<div class="zone-status-container">
+								<div class="status">Watering: <span>Active</span></div>
+								<div class="status">Enabled: <span>Yes</span></div>
+								<div class="status">Inhibited: <span>No</span></div>
+								<button class="action-button">Toggle/Cycle</button>
+							</div>
+							<div class="moisture">Moisture: <span>45%</span></div>
+                </div></div>
+                </div>
+            </div>
+		
+		
+			<div class="canvas-container">
+                <canvas id="moistureGraph"></canvas>
+            </div>
+		
+		
+            <div class="nav-btn-container">
+                <button class="nav-button" onclick="showPage('page2')">Open System Config</button>
+                <button class="nav-button" onclick="showPage('page4')">Open System Log</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page2" class="overlay" >
+        <div class="title-bar">
+			<div class="title">System Config</div>
+			<span class="close-btn" onclick="hidePage('page2')">X</span>
+		</div>
+		<div class="page">
+			<div>
+				<label for="zones">Zones Configured:</label>
+				<input type="number" max="3" min="1" id="zones"></input>
+			</div>
+
+			<div>
+				<label for="system-name">System Name:</label>
+				<input type="text" id="system-name" placeholder="Enter system name...">
+			</div>
+
+			<div>
+				<label for="system-disable">System Disable:</label>
+				<input type="checkbox" id="system-disable"></input>
+			</div>
+
+			<div>
+				<label for="season-start">Season Start:</label>
+				<input type="number" id="season-start" min="0" placeholder="Enter season start (integer)">
+			</div>
+
+			<div>
+				<label for="season-end">Season End:</label>
+				<input type="number" id="season-end" min="0" placeholder="Enter season end (integer)">
+			</div>
+
+			<div>
+				<label for="hour-sample-rate">Hourly Sample Rate:</label>
+				<input type="number" max="12" min="1" id="hour-sample-rate"></input>
+			</div>
+
+			<button onclick="systemConfSubmit()">Submit</button>
+
+			<div class="zone-config-buttons">
+				<button class="nav-button" onclick="showPage('page3', 1)">Zone 1 Config</button>
+				<button class="nav-button" onclick="showPage('page3', 2)">Zone 2 Config</button>
+			</div>
+		</div>
+    </div>
+
+    <div id="page3" class="overlay" >
+        <div class="title-bar">
+            <div class="title">Zone 1 Config</div>
+            <span class="close-btn" onclick="hidePage('page3')">X</span>
+        </div>
+        <div class="page">
+			<div class="zone-config-container">
+				<div class="zone-config-segment">
+					<h3>Moisture Management:</h3>
+					<label>Attached Moisture Sensors:</label>
+					<select id="attachedSMSensors" style="margin-bottom: 10px" multiple>
+						<option value="Sensor 1">Sensor 1</option>
+						<option value="Sensor 2">Sensor 2</option>
+						<option value="Sensor 3">Sensor 3</option>
+					</select>
+					<div class="inline-pair">
+						<label>Watering Timeout:</label>
+						<input type="number" id="wateringTimeout" max="60" min="0">
+						<label>Timeout Cooldown:</label>
+						<input type="number" id="timeoutCooldown" max="60" min="0">
+					</div>
+					<div class="inline-pair">
+						<label>Watering Enabled</label>
+						<input type="checkbox" id="wateringEnabled">
+						<label>Manual Timeout:</label>
+						<input type="number" id="manualWaterTime" max="60" min="0">
+					</div>
+					<h4>Control Limits:</h4>
+					<div class="inline-pair">
+						<label>UCL:</label>
+						<input type="number" id="ucl" max="100" min="0">
+						<label>LCL:</label>
+						<input type="number" id="lcl" max="100" min="0">
+					</div>
+				</div>
+
+				<div class="zone-config-segment">
+					<h3>Body Detection:</h3>
+					<label>Attached BD Sensors:</label>
+					<select id="attachedBDSensors" style="margin-bottom: 10px" multiple>
+						<option value="Sensor 1">Sensor 1</option>
+						<option value="Sensor 2">Sensor 2</option>
+					</select>
+					<label>BD Enabled:</label>
+					<input type="checkbox" id="bdEnabled">
+					<label>BD Alarm Time:</label>
+					<input type="number" id="bdAlarmAlert" max="60" min="0">
+				</div>
+
+				<div class="zone-config-segment">
+					<h3>Schedule:</h3>
+					<div class="inline-pair">
+						<label>On Time:</label>
+						<input type="time" id="onTime">
+						<label>Off Time:</label>
+						<input type="time" id="offTime">
+					</div>
+					<label>Schedule Enabled:</label>
+					<input type="checkbox" id="scheduleEnabled">
+				</div>
+			</div>
+			<div class="submit-container" style="display: flex; justify-content: center">
+				<button type="submit" onclick="zoneSubmitConf()">Submit</button>
+			</div>
+		</div>
+    </div>
+
+    <div id="page4" class="overlay">
+        <div class="title-bar">
+            <div class="title">System Log</div>
+            <span class="close-btn" onclick="hidePage('page4')">X</span>
+        </div>
+        <div class="page">
+            <div class="log-scroll-container" style="justify-self: center; margin-top: 10%">
+				<ul>
+				  <li>Item 1</li>
+				  <li>Item 2</li>
+				  <li>Item 3</li>
+				  <li>Item 4</li>
+				  <li>Item 5</li>
+				  <li>Item 6</li>
+				  <li>Item 7</li>
+				  <li>Item 8</li>
+				  <li>Item 9</li>
+				  <li>Item 10</li>
+				  <!-- Add more items if you want -->
+				</ul>
+			  </div>
+        </div>
+    </div>
+
+    <!-- Wi-Fi Modal -->
+    <div class="wifi-modal" id="wifi-modal">
+        <span class="close-btn-modal" onclick="closeModal()">×</span>
+        
+
+        <label for="current-ssid">Current Connected Network:</label>
+        <div id="current-ssid">None</div>
+
+        <!-- Scan Networks Button -->
+        <button class="scan-btn" onclick="scanNetworks()">Scan Networks</button>
+		
+		<div for="ssid">SSID:</div>
+        <select id="ssid">
+            <option value="SSID1">SSID1</option>
+            <option value="SSID2">SSID2</option>
+            <option value="SSID3">SSID3</option>
+        </select>
+
+        <!-- Username Section -->
+        <div for="username" style="display: block">Username:
+			<input type="text" id="username" placeholder="Enter username...">
+		</div>
+
+        <div for="password">Password:</div>
+        <input type="password" id="password" placeholder="Enter password...">
+
+        <button onclick="submitInputs()">Submit</button>
+    </div>
+
+
+    <script>
+        function hidePage(pageId) { document.getElementById(pageId).style.display = 'none'; }
+        function showModal() { document.getElementById("wifi-modal").style.display = "block"; }
+        function closeModal() { document.getElementById("wifi-modal").style.display = "none"; }
+		function showPage(pageId, zoneNumber) {
+			document.getElementById(pageId).style.display = 'block';
+			if (pageId === 'page3' && zoneNumber) {
+				console.log("Title");
+				myPage = document.getElementById(pageId);
+				myPage.querySelector('.title').textContent = `Zone ${zoneNumber} Config`;
+				updateZoneValues(zoneNumber - 1)
+			}
+		}
+		
+        function updateTime() {
+            const timeElement = document.getElementById('time');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeElement.textContent = timeString;
+        }
+        setInterval(updateTime, 1000);
+		
+		
+		
+
+        
+		
+        function scanNetworks() {
+            alert("Scanning for networks...");
+            // Add your scan network logic here.
+        }
+
+        function submitInputs() {
+            const ssid = document.getElementById("ssid").value;
+            const password = document.getElementById("password").value;
+            const username = document.getElementById("username").value;
+            console.log(`SSID: ${ssid}, Password: ${password}, Username: ${username}`);
+            closeModal();  // Close modal after submission
+        }
+		
+		
+		
+		
+		//function to generate zone Monitor units
+		function updateZoneCount() {
+            //const numZones = document.getElementById('zones').value;
+			const numZones = persistentSystemData["System Data"]["Configured Zones"]
+            const zoneDashboard = document.getElementsByClassName('zone-dashboard')[0];
+            zoneDashboard.innerHTML = ''; // Clear existing units
+
+            for (let i = 1; i <= numZones; i++) {
+                const zoneUnit = document.createElement('div');
+				zoneUnit.classList.add("zone-monitor-unit")
+                zoneUnit.innerHTML = `
+							<div class="zone-name">Zone ${i}</div>
+							<div class="zone-status-container">
+								<div class="status">Watering: <span>Active</span></div>
+								<div class="status">Enabled: <span>Yes</span></div>
+								<div class="status">Inhibiting: <span>On</span></div>
+								<button class="action-button">Toggle/Cycle</button>
+							</div>
+							<div class="moisture">Moisture: <span>45%</span></div>
+                `;
+                zoneDashboard.appendChild(zoneUnit);
+            }
+        }
+
+
+
+
+		// Function to generate zone config buttons based on number of zones
+		function generateZoneConfigButtons() {
+			const buttonTemplate = "<button class=\"nav-button\" onclick=\"showPage('page3', {{zoneNumber}})\">Zone {{zoneNumber}} Config</button>";
+			
+			//const numZones = document.getElementById('zones').value;  // Get the number of zones configured
+			//document.getElementById('zones').selectedIndex = 1;
+			const numZones = persistentSystemData["System Data"]["Configured Zones"]
+			
+			
+			const container = document.getElementsByClassName('zone-config-buttons')[0];  // Get the parent container for buttons
+
+			// Clear any existing buttons
+			console.log(numZones)
+			console.log(container.innerHTML)
+			container.innerHTML = '';
+
+			// Generate buttons for each zone
+			for (let i = 1; i <= numZones; i++) {
+				// Replace {{zoneNumber}} with the actual zone number
+				const buttonHtml = buttonTemplate.replace(/{{zoneNumber}}/g, i);
+				container.innerHTML += buttonHtml;  // Append the generated button
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		function submitSystemConfig() {
+			const zone = document.getElementById('zones').value;
+			const systemName = document.getElementById('system-name').value;
+			const systemDisable = document.getElementById('system-disable').value;
+			const seasonStart = document.getElementById('season-start').value;
+			const seasonEnd = document.getElementById('season-end').value;
+			const sampleRate = document.getElementById('sample-rate').value;
+
+			console.log(`Zone: ${zone}, System Name: ${systemName}, System Disable: ${systemDisable}, 
+				Season Start: ${seasonStart}, Season End: ${seasonEnd}, Sample Rate: ${sampleRate}`);
+		}
+		
+		
+		
+		function initializeSystemConfig() {
+			// Get data from persistentSystemData
+			const systemData = persistentSystemData["System Data"];
+			const zones = persistentSystemData["Zones"];
+
+			// Initialize the system configuration
+			document.getElementById("zones").value = systemData["Configured Zones"];
+			document.getElementById("system-name").value = systemData["System Name"];
+			document.getElementById("system-disable").checked = systemData["System Disable"];
+			document.getElementById("season-start").value = systemData["Time"]["Start SZN"];
+			document.getElementById("season-end").value = systemData["Time"]["End SZN"];
+			document.getElementById("hour-sample-rate").value = systemData["Hourly Samples"];
+		}
+		
+		
+		
+		
+		
+		function updateZoneValues(index) {
+            const zone = persistentSystemData.Zones[index]; // Select the correct zone based on the index
+
+            // Initialize select input for Attached Moisture Sensors
+            const attachedSMSensors = document.getElementById("attachedSMSensors");
+            const soilSensors = zone.MoistureManagement["Attached Soil Sensors"];
+			console.log(soilSensors)
+            Array.from(attachedSMSensors.options).forEach((option, idx) => {
+                // Loop through the options and select the ones present in the "Attached Soil Sensors"
+				console.log(soilSensors.includes(option.value))
+                option.selected = soilSensors.includes(option.value); // Set selected based on data
+            });
+
+            // Initialize numeric inputs
+            document.getElementById("wateringTimeout").value = zone.MoistureManagement["Watering Timeout Minutes"];
+            document.getElementById("timeoutCooldown").value = zone.MoistureManagement["Timeout Cooldown"];
+            document.getElementById("manualWaterTime").value = zone.MoistureManagement["Manual Water Time"];
+            document.getElementById("ucl").value = zone.MoistureManagement["Control Limits"].UCL;
+            document.getElementById("lcl").value = zone.MoistureManagement["Control Limits"].LCL;
+
+            // Initialize checkbox for Watering Enabled
+            document.getElementById("wateringEnabled").checked = !zone.MoistureManagement["Watering Disabled"];
+
+            // Initialize Body Detection values
+            const attachedBDSensors = document.getElementById("attachedBDSensors");
+            const bdSensors = zone["BD Inhibiting"]["Attached BD Sensors"];
+            Array.from(attachedBDSensors.options).forEach((option, idx) => {
+                // Loop through the options and select the ones present in the "Attached BD Sensors"
+                
+				option.selected = bdSensors.includes(option.value); // Set selected based on data
+            });
+
+            document.getElementById("bdEnabled").checked = zone["BD Inhibiting"]["BD Enable"];
+            document.getElementById("bdAlarmAlert").value = zone["BD Inhibiting"]["BD Alarm Alert"];
+
+            // Initialize Schedule values
+            document.getElementById("onTime").value = zone.Schedule["On Time"];
+            document.getElementById("offTime").value = zone.Schedule["Off Time"];
+            document.getElementById("scheduleEnabled").checked = zone.Schedule.Enabled;
+        }
+		
+		
+		
+		
+		
+		function initializeSensorSelections() {
+            // Get the Sensors data from the structure
+            const sensorsData = persistentSystemData["System Data"]["Sensors"];
+
+            // Initialize the Attached Soil Moisture Sensors select
+            const attachedSMSensors = document.getElementById("attachedSMSensors");
+            const soilMoistureSensorCount = sensorsData["Soil Moisture"];
+
+            // Clear existing options
+            attachedSMSensors.innerHTML = '';
+
+            // Dynamically add the options based on the number of available Soil Moisture sensors
+            for (let i = 1; i <= soilMoistureSensorCount; i++) {
+                const option = document.createElement("option");
+                option.value = `Sensor ${i}`;
+                option.textContent = `Sensor ${i}`;
+                attachedSMSensors.appendChild(option);
+            }
+
+            // Initialize the Attached BD Sensors select
+            const attachedBDSensors = document.getElementById("attachedBDSensors");
+            const bdDetectionSensorCount = sensorsData["BD Detection"];
+
+            // Clear existing options
+            attachedBDSensors.innerHTML = '';
+
+            // Dynamically add the options based on the number of available BD Detection sensors
+            for (let i = 1; i <= bdDetectionSensorCount; i++) {
+                const option = document.createElement("option");
+                option.value = `Sensor ${i}`;
+                option.textContent = `Sensor ${i}`;
+                attachedBDSensors.appendChild(option);
+            }
+        }
+		
+		
+		
+		
+		
+		function systemConfSubmit() {
+			// Create a copy of the current persistentSystemData to compare later
+			const oldSystemData = JSON.parse(JSON.stringify(persistentSystemData));
+
+			// Buffer the new values from the form inputs
+			const newConfiguredZones = parseInt(document.getElementById("zones").value);
+			const newSystemName = document.getElementById("system-name").value;
+			const newSystemDisable = document.getElementById("system-disable").checked;
+			const newSeasonStart = parseInt(document.getElementById("season-start").value);
+			const newSeasonEnd = parseInt(document.getElementById("season-end").value);
+			const newHourlySampleRate = parseInt(document.getElementById("hour-sample-rate").value);
+
+			// Create a copy of the current system data to update
+			const updatedSystemData = JSON.parse(JSON.stringify(persistentSystemData));
+			updatedSystemDataElement = updatedSystemData["System Data"]
+
+
+			// Update the copied structure with the buffered values
+			updatedSystemDataElement["Configured Zones"] = newConfiguredZones;
+			updatedSystemDataElement["System Name"] = newSystemName;
+			updatedSystemDataElement["System Disable"] = newSystemDisable;
+			updatedSystemDataElement["Time"]["Start SZN"] = newSeasonStart;
+			updatedSystemDataElement["Time"]["End SZN"] = newSeasonEnd;
+			updatedSystemDataElement["Hourly Samples"] = newHourlySampleRate;
+
+			// Check if the updated structure is different from the original
+			const isDataChanged = JSON.stringify(updatedSystemData) !== JSON.stringify(oldSystemData);
+
+			if (isDataChanged) {
+				// If data has changed, send an HTTP request to the server
+				sendUpdateRequest();
+			} else {
+				console.log("No changes detected.");
+			}
+		}
+
+
+		function zoneSubmitConf() {
+			// Get the zone number from the h3 title (e.g., "Zone 1", "Zone 2", etc.)
+			const zoneTitle = document.querySelector("#page3 .title");
+			let zoneNumber = parseInt(zoneTitle.textContent.match(/\d+/)[0]);
+
+			// Adjust the zone number by subtracting 1
+			zoneNumber = zoneNumber - 1;
+
+			// Create a copy of the current persistentSystemData to compare later
+			const oldSystemData = JSON.parse(JSON.stringify(persistentSystemData));
+
+			// Get the values from the form inputs
+			const attachedSMSensors = Array.from(document.getElementById("attachedSMSensors").selectedOptions).map(option => option.value);
+			const wateringTimeout = parseInt(document.getElementById("wateringTimeout").value);
+			const timeoutCooldown = parseInt(document.getElementById("timeoutCooldown").value);
+			const wateringEnabled = document.getElementById("wateringEnabled").checked;
+			const manualWaterTime = parseInt(document.getElementById("manualWaterTime").value);
+			const ucl = parseInt(document.getElementById("ucl").value);
+			const lcl = parseInt(document.getElementById("lcl").value);
+			const attachedBDSensors = Array.from(document.getElementById("attachedBDSensors").selectedOptions).map(option => option.value);
+			const bdEnabled = document.getElementById("bdEnabled").checked;
+			const bdAlarmAlert = parseInt(document.getElementById("bdAlarmAlert").value);
+			const onTime = document.getElementById("onTime").value;
+			const offTime = document.getElementById("offTime").value;
+			const scheduleEnabled = document.getElementById("scheduleEnabled").checked;
+			
+			zoneElement = oldSystemData["Zones"][zoneNumber];
+			zoneMoistureElement = oldSystemData["Zones"][zoneNumber]["MoistureManagement"];
+
+			// Update the specific zone in the copied structure (oldSystemData) using square brackets
+			zoneMoistureElement["Attached Soil Sensors"] = attachedSMSensors;
+			zoneMoistureElement["Manual Water Time"] = manualWaterTime;
+			zoneMoistureElement["Watering Timeout Minutes"] = wateringTimeout;
+			zoneMoistureElement["Timeout Cooldown"] = timeoutCooldown;
+			zoneMoistureElement["Watering Disabled"] = !wateringEnabled;
+			zoneMoistureElement["Control Limits"] = {};
+			zoneMoistureElement["Control Limits"]["UCL"] = ucl;
+			zoneMoistureElement["Control Limits"]["LCL"] = lcl;
+
+			zoneElement["BD Inhibiting"]["Attached BD Sensors"] = attachedBDSensors;
+			zoneElement["BD Inhibiting"]["BD Enable"] = bdEnabled;
+			zoneElement["BD Inhibiting"]["BD Alarm Alert"] = bdAlarmAlert;
+
+			zoneElement["Schedule"]["On Time"] = onTime;
+			zoneElement["Schedule"]["Off Time"] = offTime;
+			zoneElement["Schedule"]["Enabled"] = scheduleEnabled;
+
+			// Check if the updated structure is different from the original
+			const isDataChanged = JSON.stringify(oldSystemData) !== JSON.stringify(persistentSystemData);
+
+			if (isDataChanged) {
+				// If data has changed, send an HTTP request to the server
+				sendUpdateRequest();
+			} else {
+				console.log("No changes detected.");
+			}
+		}
+
+		
+		// Function to send an HTTP request to the server
+		function sendUpdateRequest() {
+			const request = new XMLHttpRequest();
+			request.open("POST", "/update-config", true); // Adjust URL as needed for your server
+			request.setRequestHeader("Content-Type", "application/json");
+
+			// Send the updated persistentSystemData as a JSON string
+			request.send(JSON.stringify(persistentSystemData));
+
+			request.onload = function() {
+				if (request.status === 200) {
+					console.log("Data successfully updated on the server.");
+				} else {
+					console.log("Error updating data on the server.");
+				}
+			};
+		}
+		
+		
+		
+		
+		
+		window.addEventListener('load', function() {
+			generateZoneConfigButtons();
+			updateZoneCount();
+			initializeSystemConfig();
+			initializeSensorSelections();
+			console.log(persistentSystemData)
+		});
+    </script>
+
+</body></html>

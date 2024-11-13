@@ -1,13 +1,10 @@
 {
     "System Data": {
-        "Configured Zones": 2,
+        "Configured Zones": 4,
         "System Name": "myIrrigation_System",
         "System Disable": true,
-        "Mode": "Manual",
         "Simultaneous Watering": false,
-        "Sample Rate": 1,
-        "log pointer": 40,
-        "24hr sample pointer": 248,
+        "Hourly Samples": 1,
         "Sensors": {
             "Soil Moiture": 3,
             "BD Detection": 2
@@ -15,7 +12,7 @@
         "Time": {
             "LastNTP_Connection": "",
             "Start SZN": 0,
-            "End SZN": 0
+            "End SZN": 365
         }
     },
     "Zones": [
@@ -35,15 +32,12 @@
             },
             "BD Inhibiting": {
                 "Attached BD Sensors": [],
-                "BD enable": true,
-                "BD alarm alert": 30
+                "BD Enable": true,
+                "BD Alarm Alert": 30
             },
             "Schedule": {
-                "On": true,
-                "Times": [
-                    "00:00",
-                    "24:00"
-                ],
+                "On Time": "00:00",
+                "Off Time": "23:59",
                 "Enabled": false
             }
         },
@@ -63,15 +57,62 @@
             },
             "BD Inhibiting": {
                 "Attached BD Sensors": [],
-                "BD enable": true,
-                "BD alarm alert": 30
+                "BD Enable": true,
+                "BD Alarm Alert": 30
             },
             "Schedule": {
-                "On": true,
-                "Times": [
-                    "00:00",
-                    "24:00"
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor3"
                 ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor4"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
                 "Enabled": false
             }
         }
