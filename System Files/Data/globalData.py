@@ -2,6 +2,8 @@
 
 # generate data strcutures
     # convert json system conf file to dict
+
+
     # create or reinitialize program data => zones correspond with number of zones in conf file
         # each zone gets => {"Average Zone Moisture": 0 - 100, "Watering Watch Dog": object, "BD Watch Dog": object}
         # webpage => control logic {"ModeToggleFlag": 0 - 1, "WateringToggleFlags" (initilize array with zero for each zone): []}

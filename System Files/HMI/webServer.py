@@ -31,6 +31,11 @@
 import socket
 import _thread
 import time
+import os
+
+MAX_CONNECTIONS = 3
+HTML_FILE_PATH = "HMI/Irrigation System UI final.html"
+socketTimeout = 3  # Timeout in seconds
 
 # Global list to store active clients and their ports
 active_clients = []
@@ -38,55 +43,129 @@ active_clients = []
 # Lock for managing access to active_clients
 client_lock = _thread.allocate_lock()
 
+
+
+def send_html_file_in_chunks(conn, file_path, chunk_size=256): 
+    """
+    Send HTML content from a file stored on disk in chunks.
+    """
+    try:
+        file_size = os.stat(file_path)[6]
+        # Send the initial response headers with chunked transfer encoding
+        conn.send(b"HTTP/1.1 200 OK\r\n")
+        conn.send(b"Content-Type: text/html; charset=UTF-8\r\n")  # Added charset
+        conn.send(b"Transfer-Encoding: chunked\r\n")
+        conn.send(b"Cache-Control: no-store\r\n")  # Added caching headers
+        conn.send(b"Access-Control-Allow-Origin: *\r\n")
+        conn.send(b"Pragma: no-cache\r\n")
+        conn.send(b"Expires: 0\r\n")  # Added expiry headers
+        conn.send(b"\r\n")
+
+        # Open the file and send it in chunks
+        with open(file_path, 'rb') as file:
+            while (chunk := file.read(chunk_size)):
+                # Send the size of the chunk in hexadecimal
+                conn.send(f"{len(chunk):X}\r\n".encode())
+                # Send the chunk data itself
+                conn.send(chunk)
+                # Send a new line to end the chunk
+                conn.send(b"\r\n")
+
+        # Send the last zero-length chunk to indicate the end
+        conn.send(b"0\r\n\r\n")
+
+    except OSError as e:
+        print(f"Error opening file: {e}")
+        conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError opening file.")
+    except Exception as e:
+        print(f"Error sending file: {e}")
+        conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError sending file.")
+
+
+
+
 def client_thread(conn, addr, port):
     global active_clients
     print(f"New client connected: {addr}:{port}")
     
+    conn.settimeout(socketTimeout)
+
     # Add client to active clients list
     with client_lock:
         # Check if client IP already exists in the list
         existing_client = None
         for client in active_clients:
+            print(client)
             if client['ip'] == addr:
-                existing_client = client
-                break
+                #existing_client = client
+                active_clients.remove(client)
+                
         
+        """
         if existing_client:
+            #pass
             # If another connection from the same client exists, remove the old one
             existing_client['conn'].close()
-            existing_client['thread'].exit()
+            #existing_client['thread'].exit()
             active_clients.remove(existing_client)
+        """
+        
 
         # Add the new connection as the active client
         client_data = {'ip': addr, 'port': port, 'conn': conn, 'thread': _thread.get_ident()}
         active_clients.append(client_data)
+        send_html_file_in_chunks(conn, HTML_FILE_PATH)
 
-    try:
-        while True:
+        
+    while True:
+        try:
             # Here, you would handle client requests
             data = conn.recv(1024)
-            if not data:
+            print("the data: ", data)
+            if data == b'':
                 break
-            print(f"Received from {addr}:{port}: {data.decode()}")
-            conn.send(data)  # Echo data back to client
+            print("yeoo")
+            #active_clients
+
+            #print(f"Received from {addr}:{port}: {data.decode()}")
+            #conn.send(data)  # Echo data back to client
+            
+
+            
 
             # Check for reconnection from the same client
             with client_lock:
+                print(f"active clients for {addr}: {len([c for c in active_clients if c['ip'] == addr])}")
                 if len([c for c in active_clients if c['ip'] == addr]) > 1 and client_data != active_clients[-1]:
                     print(f"Ending duplicate connection for {addr}:{port}")
+
                     break  # Exit thread if it's an older connection from the same client
             
+            """
+            if b"GET" in data:
+                send_html_file_in_chunks(conn, HTML_FILE_PATH)
+                continue
+            """
 
-            
-            time.sleep(0.1)  # Prevent busy-waiting
+            """
+            with client_lock:
+                if client_data in active_clients:
+                    active_clients.remove(client_data)
+            """
 
-    finally:
-        # Cleanup on disconnection
-        with client_lock:
-            if client_data in active_clients:
-                active_clients.remove(client_data)
-        conn.close()
-        print(f"Client {addr}:{port} disconnected")
+            continue
+            #time.sleep(0.1)  # Prevent busy-waiting
+        except:
+            print(active_clients)
+            print("No Bytes recieved")
+            continue
+        
+    # Cleanup on disconnection
+    
+    #conn.close()
+    print(f"Client {addr}:{port} disconnected")
+    print(active_clients)
+    return
 
 def web_server_thread():
     global active_clients

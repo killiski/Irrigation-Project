@@ -5,7 +5,7 @@
 	<script id="persistentSystemData">
 jsonData = `{
     "System Data": {
-        "Configured Zones": 2,
+        "Configured Zones": 3,
         "System Name": "myIrrigation_System",
         "System Disable": true,
         "Simultaneous Watering": false,
@@ -434,9 +434,6 @@ persistentSystemData = JSON.parse(jsonData)
             timeElement.textContent = timeString;
         }
         setInterval(updateTime, 1000);
-		
-		
-		
 
         
 		
@@ -452,9 +449,6 @@ persistentSystemData = JSON.parse(jsonData)
             console.log(`SSID: ${ssid}, Password: ${password}, Username: ${username}`);
             closeModal();  // Close modal after submission
         }
-		
-		
-		
 		
 		//function to generate zone Monitor units
 		function updateZoneCount() {
@@ -481,8 +475,6 @@ persistentSystemData = JSON.parse(jsonData)
         }
 
 
-
-
 		// Function to generate zone config buttons based on number of zones
 		function generateZoneConfigButtons() {
 			const buttonTemplate = "<button class=\"nav-button\" onclick=\"showPage('page3', {{zoneNumber}})\">Zone {{zoneNumber}} Config</button>";
@@ -506,11 +498,6 @@ persistentSystemData = JSON.parse(jsonData)
 				container.innerHTML += buttonHtml;  // Append the generated button
 			}
 		}
-		
-		
-		
-		
-		
 		
 		
 		function submitSystemConfig() {
@@ -540,9 +527,6 @@ persistentSystemData = JSON.parse(jsonData)
 			document.getElementById("season-end").value = systemData["Time"]["End SZN"];
 			document.getElementById("hour-sample-rate").value = systemData["Hourly Samples"];
 		}
-		
-		
-		
 		
 		
 		function updateZoneValues(index) {
