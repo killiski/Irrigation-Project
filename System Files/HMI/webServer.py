@@ -35,7 +35,7 @@ import os
 
 MAX_CONNECTIONS = 3
 HTML_FILE_PATH = "HMI/Irrigation System UI final.html"
-socketTimeout = 3  # Timeout in seconds
+socketTimeout = 10  # Timeout in seconds
 
 # Global list to store active clients and their ports
 active_clients = []
@@ -97,18 +97,16 @@ def client_thread(conn, addr, port):
         for client in active_clients:
             print(client)
             if client['ip'] == addr:
-                #existing_client = client
-                active_clients.remove(client)
+                #pass
+                existing_client = client
+                #active_clients.remove(client)
                 
         
-        """
+        
         if existing_client:
-            #pass
             # If another connection from the same client exists, remove the old one
-            existing_client['conn'].close()
-            #existing_client['thread'].exit()
             active_clients.remove(existing_client)
-        """
+        
         
 
         # Add the new connection as the active client
@@ -131,12 +129,8 @@ def client_thread(conn, addr, port):
             #conn.send(data)  # Echo data back to client
             
 
-            
-
-            # Check for reconnection from the same client
             with client_lock:
-                print(f"active clients for {addr}: {len([c for c in active_clients if c['ip'] == addr])}")
-                if len([c for c in active_clients if c['ip'] == addr]) > 1 and client_data != active_clients[-1]:
+                if client_data not in active_clients:
                     print(f"Ending duplicate connection for {addr}:{port}")
 
                     break  # Exit thread if it's an older connection from the same client
@@ -156,15 +150,17 @@ def client_thread(conn, addr, port):
             continue
             #time.sleep(0.1)  # Prevent busy-waiting
         except:
-            print(active_clients)
+            print(f"Printing From {addr}: {active_clients}")
             print("No Bytes recieved")
             continue
         
     # Cleanup on disconnection
     
-    #conn.close()
     print(f"Client {addr}:{port} disconnected")
-    print(active_clients)
+    print(f"active clients before removal: {active_clients}")
+    active_clients.remove(client_data)
+    print(f"active clients after removal: {active_clients}")
+
     return
 
 def web_server_thread():

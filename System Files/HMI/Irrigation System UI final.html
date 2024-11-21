@@ -1,6 +1,6 @@
 <html lang="en"><head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Irrigation System UI</title>
 	<script id="persistentSystemData">
 jsonData = `{
@@ -91,6 +91,7 @@ persistentSystemData = JSON.parse(jsonData)
 		@media (max-aspect-ratio: 1/1) {
 			:root { 
 				--topOfOverlay: 5%;
+				font-size: 0.5rem !important;
 				/* --canvas-height: 60%; */
 			}
 		}
@@ -98,17 +99,17 @@ persistentSystemData = JSON.parse(jsonData)
 		
 		body, html { background: #e0e0e0; font-family: Arial, sans-serif; }
 
-        .title-bar {height: var(--topOfOverlay); background: #444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .title-bar {height: var(--topOfOverlay); background: #444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
 		
 		
         
         .title-bar .time, .title-bar .title, .title-bar .wifi { position: absolute; display: flex; align-items: center; }
-        .time { left: 1rem; font-size: 1rem; }
-        .wifi { right: 1rem; font-size: 1.5rem; cursor: pointer; }
+        .time { left: 1rem; }
+        .wifi { right: 1rem; cursor: pointer; font-size: 1.5rem;}
 
         .overlay { display: none; position: absolute; width: 100%; height: 100%; background: rgba(255, 255, 255, 1); }
         
-		.close-btn { position: absolute; top: 1rem; right: 1rem; cursor: pointer; color: #fff; font-size: 1.5rem; }
+		.close-btn { position: absolute; top: 1rem; right: 1rem; cursor: pointer; color: #b80909; font-size: 1.5rem; }
 
 		
         .page > div { margin-bottom: 1rem; }
@@ -118,11 +119,15 @@ persistentSystemData = JSON.parse(jsonData)
 		#page2 > .page {padding: 1rem}
 		
 
-		.main-interface-container { display: flex; justify-content: space-between; width: 100%; }
-		#mode-button-container, #zone-control-container { flex: 1; background: #ccc; margin: 0.5rem; display: flex; align-items: center; justify-content: center; justify-content: space-around; min-height: 30px;}
+		.main-interface-container { display: flex; justify-content: space-between; width: 100%;}
+		#mode-button-container, #zone-control-container { flex: 1; display: flex; align-items: center; justify-content: center; justify-content: space-around; }
 		#mode-button-container { flex: 0 0 15% !important; }
-		#mode-button:active { opacity: 0.5 !important; }
-		#zone-control-container { background: #ddd; }
+		
+		#mode-button { min-height: 70px; border: 1.5rem inset black; background: #072bca}
+		@media (min-aspect-ratio: 1/1) { #mode-button { border: 1rem inset black; margin: 0 0 0 0;} }
+		
+		#mode-button:active { opacity: 0.5 !important;}
+		#zone-control-container { background: #362b2b; padding: 0.5rem 0 0.5rem 0;}
 		
 		@media (max-aspect-ratio: 1/1) { .main-interface-container { flex-direction: column; } }
 	
@@ -130,12 +135,12 @@ persistentSystemData = JSON.parse(jsonData)
 
 
 
-		.zone-dashboard { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; justify-content: space-around; }
-        .zone-monitor-unit { display: flex; flex-direction: column; align-items: center; justify-content: space-between; max-width: 250px; max-height: 300px; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background: #f5f5f5; }
+		.zone-dashboard { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-around;}
+        .zone-monitor-unit { display: flex; flex-direction: column; align-items: center; justify-content: space-between; max-width: 250px; max-height: 300px; border: 1px solid #ccc; border-radius: 8px; background: #f5f5f5; }
         
-		@media (max-aspect-ratio: 1/1) { .zone-monitor-unit { max-width: 200px; } }
+		@media (max-aspect-ratio: 1/1) { .zone-monitor-unit { max-width: 150px; font-size: 0.5rem; } }
 		
-		.zone-name { background: #444; color: white; padding: 0.5rem; width: 100%; text-align: center; font-size: 1.2rem; font-weight: bold; }
+		.zone-name { background: #444; color: white;  width: 100%; text-align: center; font-size: 1.2rem; font-weight: bold; border-radius: 8px 8px 0 0}
         .zone-status-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%; }
         .status, .action-button { font-size: 0.9rem; width: 45%; margin: 0.5rem 0; display: flex; align-items: center; justify-content: center; }
         .action-button { padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
@@ -148,7 +153,7 @@ persistentSystemData = JSON.parse(jsonData)
 
 
 		.canvas-container { display: flex; background: #f5f5f5; margin: 1rem; }
-        .canvas-container canvas { max-width: 100%; max-height: 100%; }
+        .canvas-container canvas { max-width: 100%; max-height: 100%;}
 
 
 
@@ -162,10 +167,11 @@ persistentSystemData = JSON.parse(jsonData)
 		.inline-pair { display: flex; gap: 1rem; align-items: center;}
 		.inline-pair label, .inline-pair input { flex: 1 }
 
-
+		
 		@media (max-aspect-ratio: 1/1) and (max-width: 900px){
 			.zone-config-container{display: block;}
 		}
+		
 		@media (min-aspect-ratio: 1/1) and (max-height: 900px){
 			.zone-config-container{font-size: 0.8rem}
 		}
@@ -192,10 +198,13 @@ persistentSystemData = JSON.parse(jsonData)
 		.submissionBtnSty:hover { background: #333; }
 
         /* Modal Styling */
-        .wifi-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border: 1px solid #ccc; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); z-index: 10; width: 300px; }
-        .wifi-modal input, .wifi-modal select, .wifi-modal button { width: 100%; margin: 10px 0; padding: 8px; }
+        .wifi-modal { font-size: 1rem !important; display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border: 1px solid #ccc; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); z-index: 10; width: 75%; }
+        
+		.wifi-modal input, .wifi-modal select, .wifi-modal button { width: 100%; margin: 10px 0; padding: 8px; }
         .wifi-modal button { background: #28a745; color: #fff; border: none; cursor: pointer; }
-        .wifi-modal .close-btn-modal { position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; color: #ccc; font-size: 1.5rem; }
+        .wifi-modal .close-btn-modal { font-size: 2rem; position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; color: #411e1e;}
+		@media (max-aspect-ratio: 1/1) {.wifi-modal { font-size: 1.5rem !important; }} */
+		
     </style>
 </head>
 <body>
@@ -209,9 +218,9 @@ persistentSystemData = JSON.parse(jsonData)
 			<div class="main-interface-container">
                 <div id="mode-button-container" style="background: #ccc; text-align: center">
                     <!-- Content for manual button container can go here -->
-                    <button id="mode-button" style="width: 100%; height: 80%; background-color: #8fd1f7">Toggle for ...</button>
+                    <button id="mode-button" style="width: 100%; height: 100%;">Toggle for ...</button>
                 </div>
-                <div id="zone-control-container" style="background: #ddd;">
+                <div id="zone-control-container">
                      <div class="zone-dashboard"><div class="zone-monitor-unit">
 							<div class="zone-name">Zone 1</div>
 							<div class="zone-status-container">
@@ -529,6 +538,7 @@ persistentSystemData = JSON.parse(jsonData)
 		}
 		
 		
+		//should be zone config values
 		function updateZoneValues(index) {
             const zone = persistentSystemData.Zones[index]; // Select the correct zone based on the index
 
@@ -611,7 +621,7 @@ persistentSystemData = JSON.parse(jsonData)
 		
 		
 		
-		
+		// we gotta check all the values bounds before storing
 		
 		function systemConfSubmit() {
 			// Create a copy of the current persistentSystemData to compare later
@@ -630,13 +640,15 @@ persistentSystemData = JSON.parse(jsonData)
 			updatedSystemDataElement = updatedSystemData["System Data"]
 
 
-			// Update the copied structure with the buffered values
+			// Update the copied structure with the buffered values after checking if in desried bounds
 			updatedSystemDataElement["Configured Zones"] = newConfiguredZones;
 			updatedSystemDataElement["System Name"] = newSystemName;
 			updatedSystemDataElement["System Disable"] = newSystemDisable;
 			updatedSystemDataElement["Time"]["Start SZN"] = newSeasonStart;
 			updatedSystemDataElement["Time"]["End SZN"] = newSeasonEnd;
 			updatedSystemDataElement["Hourly Samples"] = newHourlySampleRate;
+
+			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
 
 			// Check if the updated structure is different from the original
 			const isDataChanged = JSON.stringify(updatedSystemData) !== JSON.stringify(oldSystemData);
@@ -696,6 +708,7 @@ persistentSystemData = JSON.parse(jsonData)
 			zoneElement["Schedule"]["On Time"] = onTime;
 			zoneElement["Schedule"]["Off Time"] = offTime;
 			zoneElement["Schedule"]["Enabled"] = scheduleEnabled;
+			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
 
 			// Check if the updated structure is different from the original
 			const isDataChanged = JSON.stringify(oldSystemData) !== JSON.stringify(persistentSystemData);
@@ -720,6 +733,8 @@ persistentSystemData = JSON.parse(jsonData)
 
 			request.onload = function() {
 				if (request.status === 200) {
+					// call load json file
+					// call zone config and system config update
 					console.log("Data successfully updated on the server.");
 				} else {
 					console.log("Error updating data on the server.");
