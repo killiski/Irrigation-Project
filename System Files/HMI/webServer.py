@@ -61,6 +61,7 @@ def send_html_file_in_chunks(conn, file_path, chunk_size=256):
         conn.send(b"Expires: 0\r\n")  # Added expiry headers
         conn.send(b"\r\n")
 
+
         # Open the file and send it in chunks
         with open(file_path, 'rb') as file:
             while (chunk := file.read(chunk_size)):
@@ -73,13 +74,22 @@ def send_html_file_in_chunks(conn, file_path, chunk_size=256):
 
         # Send the last zero-length chunk to indicate the end
         conn.send(b"0\r\n\r\n")
+    except:
+        return -1
 
+
+    """
     except OSError as e:
         print(f"Error opening file: {e}")
         conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError opening file.")
     except Exception as e:
         print(f"Error sending file: {e}")
         conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError sending file.")
+    
+    
+    finally:
+        return
+    """
 
 
 
@@ -108,11 +118,16 @@ def client_thread(conn, addr, port):
             active_clients.remove(existing_client)
         
         
-
+        
         # Add the new connection as the active client
         client_data = {'ip': addr, 'port': port, 'conn': conn, 'thread': _thread.get_ident()}
+        
         active_clients.append(client_data)
-        send_html_file_in_chunks(conn, HTML_FILE_PATH)
+        if send_html_file_in_chunks(conn, HTML_FILE_PATH) == -1:
+            print(f"Ending connection for {addr}:{port} due to file error")
+            active_clients.remove(client_data)
+            return
+        print(f"Printing client data {client_data}")
 
         
     while True:
@@ -150,17 +165,20 @@ def client_thread(conn, addr, port):
             continue
             #time.sleep(0.1)  # Prevent busy-waiting
         except:
-            print(f"Printing From {addr}: {active_clients}")
+            print(f"Printing From {addr} @ {port}: {active_clients}")
+            with client_lock:
+                if client_data not in active_clients:
+                    print(f"Ending duplicate connection for {addr}:{port}")
+                    return
             print("No Bytes recieved")
             continue
         
     # Cleanup on disconnection
     
     print(f"Client {addr}:{port} disconnected")
-    print(f"active clients before removal: {active_clients}")
-    active_clients.remove(client_data)
-    print(f"active clients after removal: {active_clients}")
-
+    #print(f"active clients before removal: {active_clients}")
+    #active_clients.remove(client_data)
+    #print(f"active clients after removal: {active_clients}")
     return
 
 def web_server_thread():

@@ -420,7 +420,7 @@ persistentSystemData = JSON.parse(jsonData)
         <div for="password">Password:</div>
         <input type="password" id="password" placeholder="Enter password...">
 
-        <button onclick="submitInputs()">Submit</button>
+        <button onclick="()">Submit</button>
     </div>
 
 
@@ -451,7 +451,7 @@ persistentSystemData = JSON.parse(jsonData)
             // Add your scan network logic here.
         }
 
-        function submitInputs() {
+        function () {
             const ssid = document.getElementById("ssid").value;
             const password = document.getElementById("password").value;
             const username = document.getElementById("username").value;

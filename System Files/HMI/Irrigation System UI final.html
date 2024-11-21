@@ -92,7 +92,11 @@ persistentSystemData = JSON.parse(jsonData)
 			:root { 
 				--topOfOverlay: 5%;
 				font-size: 0.5rem !important;
+				
 				/* --canvas-height: 60%; */
+			}
+			:root input{
+				font-size: 1.5rem;
 			}
 		}
 		
@@ -418,7 +422,7 @@ persistentSystemData = JSON.parse(jsonData)
         <div for="password">Password:</div>
         <input type="password" id="password" placeholder="Enter password...">
 
-        <button onclick="submitInputs()">Submit</button>
+        <button onclick="submitNetworkID()">Submit</button>
     </div>
 
 
@@ -451,7 +455,7 @@ persistentSystemData = JSON.parse(jsonData)
             // Add your scan network logic here.
         }
 
-        function submitInputs() {
+        function submitNetworkID() {
             const ssid = document.getElementById("ssid").value;
             const password = document.getElementById("password").value;
             const username = document.getElementById("username").value;
@@ -634,6 +638,8 @@ persistentSystemData = JSON.parse(jsonData)
 			const newSeasonStart = parseInt(document.getElementById("season-start").value);
 			const newSeasonEnd = parseInt(document.getElementById("season-end").value);
 			const newHourlySampleRate = parseInt(document.getElementById("hour-sample-rate").value);
+			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
+				//need to do this after buffering to avoid storing
 
 			// Create a copy of the current system data to update
 			const updatedSystemData = JSON.parse(JSON.stringify(persistentSystemData));
@@ -648,7 +654,7 @@ persistentSystemData = JSON.parse(jsonData)
 			updatedSystemDataElement["Time"]["End SZN"] = newSeasonEnd;
 			updatedSystemDataElement["Hourly Samples"] = newHourlySampleRate;
 
-			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
+			
 
 			// Check if the updated structure is different from the original
 			const isDataChanged = JSON.stringify(updatedSystemData) !== JSON.stringify(oldSystemData);
@@ -687,7 +693,11 @@ persistentSystemData = JSON.parse(jsonData)
 			const onTime = document.getElementById("onTime").value;
 			const offTime = document.getElementById("offTime").value;
 			const scheduleEnabled = document.getElementById("scheduleEnabled").checked;
-			
+			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
+				//need to do this after buffering to avoid storing
+
+
+
 			zoneElement = oldSystemData["Zones"][zoneNumber];
 			zoneMoistureElement = oldSystemData["Zones"][zoneNumber]["MoistureManagement"];
 
@@ -708,7 +718,7 @@ persistentSystemData = JSON.parse(jsonData)
 			zoneElement["Schedule"]["On Time"] = onTime;
 			zoneElement["Schedule"]["Off Time"] = offTime;
 			zoneElement["Schedule"]["Enabled"] = scheduleEnabled;
-			//if any one not in desired bounds add each error to a string and then call a modal to display with the errors
+			
 
 			// Check if the updated structure is different from the original
 			const isDataChanged = JSON.stringify(oldSystemData) !== JSON.stringify(persistentSystemData);
