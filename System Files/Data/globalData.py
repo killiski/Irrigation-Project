@@ -1,5 +1,6 @@
 import os
-from configGenerator import load_json
+#import configGenerator
+import json
 # data file paths
 
 # generate data strcutures
@@ -15,6 +16,19 @@ from configGenerator import load_json
             # networkConnectionFlag
             # UpdateConfigFlag
             # 
+
+def replace_json( newJson, file_path):
+    with open(file_path, 'w') as f:
+        json.dump(newJson, f, indent=4)
+    return newJson
+
+def load_json(file_path):
+    print(os.listdir())
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)  # Load JSON as a Python dictionary
+    return data
+
 
 
 #-----------------------------Web Server--------------------------#
@@ -40,10 +54,10 @@ APPASSWORD='123456789'
 
 
 #-------------------------------SYSTEM data ---------------------------#
-CONFIGFILEPATH = "./System Files/Data/irrigation_system_config.json"
-BDSENSORLOG = "./System Files/Data/BDSensor.csv"
-SMSENSORLOG = "./System Files/Data/SoilMoistureSensor.csv"
-SYSLOGS = "./System Files/Data/SystemLogs.csv"
+CONFIGFILEPATH = "/Data/irrigation_system_config.json"
+BDSENSORLOG = "Data/BDSensor.csv"
+SMSENSORLOG = "Data/SoilMoistureSensor.csv"
+SYSLOGS = "Data/SystemLogs.csv"
 SMDATAPOINTS = 10
 BDDATAPOINTS = 10
 HARDWAREINPUTFREQUENCY = 4
@@ -67,7 +81,7 @@ ZONES = SMSENSORS
 BDSENSORS = len(BodyDetectionPins)
 
 
-systemConfigParameters = load_json()
+systemConfigParameters = load_json(CONFIGFILEPATH)
  # holds all the current config paramters for comparison
 
 # data points
@@ -128,7 +142,7 @@ def replace_json_in_html(new_json):
     
     try:
         # Open the HTML file
-        with open(CONFIGFILEPATH, 'r') as f:
+        with open(HTML_FILE_PATH, 'r') as f:
             content = f.read()
 
         # Define the placeholder for the JSON content
@@ -149,12 +163,16 @@ def replace_json_in_html(new_json):
         updated_content = content[:start_index] + new_script + content[end_index + len(script_end):]
 
         # Write the modified content back to the file
-        with open(CONFIGFILEPATH, 'w') as f:
+        with open(HTML_FILE_PATH, 'w') as f:
             f.write(updated_content)
         print("HTML file updated successfully.")
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
+
+
+
 
 
 

@@ -84,10 +84,6 @@ def load_json(file_path=filePath):
     return data
 
 
-def replace_json( newJson, file_path=filePath):
-    with open(file_path, 'w') as f:
-        json.dump(newJson, f, indent=4)
-    return newJson
 
 
 
