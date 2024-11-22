@@ -5,7 +5,6 @@ import _thread
 import ControlLogic.Inputs
 from HMI import networkMan, webServer
 from Data import globalData
-import ControlLogic
 
 
 

@@ -5,8 +5,20 @@ from machine import Pin, ADC
 
 # Configure ADC channels
 # Initialize the pins
-SMchannels = [ADC(Pin(pin)) for pin in globalData.SoilMoisturePins]  # Create ADC objects
-BDchannels = [Pin(pin, Pin.IN) for pin in globalData.BodyDetectionPins]
+SMchannels = []
+for pin in globalData.SoilMoisturePins:
+    adc = ADC(Pin(pin))                # Initialize ADC on the specified pin
+    adc.atten(ADC.ATTN_11DB)           # Set attenuation for 0-3.3V range
+    adc.width(ADC.WIDTH_12BIT)         # Use 12-bit resolution (0-4095)
+    SMchannels.append(adc)
+
+# Configure Body Detection (Digital) Pins
+BDchannels = []
+for pin in globalData.BodyDetectionPins:
+    bd_pin = Pin(pin, Pin.IN, Pin.PULL_UP)  # Use PULL_UP or PULL_DOWN as needed
+    BDchannels.append(bd_pin)
+
+
 
 # Constants
 DATAPOINTS = 10
@@ -28,6 +40,7 @@ globalData.systemConfigParameters # check for attached sensors???
 
 
 # Lists to hold recent readings for each sensor
+
 SMdatapoints = [[] for _ in range(len(SMchannels))]  # List of lists for soil moisture sensors
 BDdatapoints = [[] for _ in range(len(BDchannels))]  # List of lists for body detection sensors
 
@@ -79,8 +92,10 @@ def read_sensors():
                 #if on and bd timer not timing set BD timer, if off reset bd timer timing
             bd_counter = 0
         
-        #print(f"SM datapoints: {SMdatapoints}")
-        #print(f"BD datapoints: {BDdatapoints}")
+        print(SMchannels)
+        print(BDchannels)
+        print(f"SM datapoints: {SMdatapoints}")
+        print(f"BD datapoints: {BDdatapoints}")
         time.sleep(READPERIOD)
 
 

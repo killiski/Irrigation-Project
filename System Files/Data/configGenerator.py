@@ -2,10 +2,17 @@ import os
 import json
 
 
-filePath = "Data/irrigation_system_config.json"
+filePath = "./System Files/Data/irrigation_system_config.json"
 
-def create_irrigation_system_config(num_zones, file_path=filePath):
+
+
+
+
+def create_irrigation_system_config(num_sols, num_BD, file_path=filePath):
     # Check if the file exists
+    # print(os.getcwd())
+    print(f"my file path is {file_path}")
+
     if os.path.exists(file_path):
         print("File already exists.")
         return
@@ -13,14 +20,14 @@ def create_irrigation_system_config(num_zones, file_path=filePath):
     # Initialize the system data structure
     system_data = {
         "System Data": {
-            "Configured Zones": num_zones,
+            "totalSolenoids": num_sols,
             "System Name": "myIrrigation_System",
             "System Disable": True,
-            "Simultaneous Watering": False,
+            "Simultaneous Watering": 1,
             "Hourly Samples": 1,
             "Sensors": {
-                "Soil Moiture": 3,
-                "BD Detection": 2
+                "Soil Moiture": num_sols,
+                "BD Detection": num_BD
             },
             "Time": {
                 "LastNTP_Connection": "",
@@ -32,7 +39,7 @@ def create_irrigation_system_config(num_zones, file_path=filePath):
     }
 
     # Create the zones with duplicated structure and modify sensor attachments
-    for i in range(num_zones):
+    for i in range(num_sols):
         zone_data = {
             "MoistureManagement": {
                 "Attached Soil Sensors": [f"Sensor{i + 1}"],
@@ -76,9 +83,17 @@ def load_json(file_path=filePath):
         data = json.load(f)  # Load JSON as a Python dictionary
     return data
 
-# Example usage
-create_irrigation_system_config(1)
 
-myData = load_json()
-print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])
+def replace_json( newJson, file_path=filePath):
+    with open(file_path, 'w') as f:
+        json.dump(newJson, f, indent=4)
+    return newJson
+
+
+
+# Example usage
+#create_irrigation_system_config(3, 2, filePath)
+
+#myData = load_json()
+#print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])
 

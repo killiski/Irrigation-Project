@@ -1,9 +1,9 @@
 {
     "System Data": {
-        "Configured Zones": 1,
+        "totalSolenoids": 3,
         "System Name": "myIrrigation_System",
         "System Disable": true,
-        "Simultaneous Watering": false,
+        "Simultaneous Watering": 1,
         "Hourly Samples": 1,
         "Sensors": {
             "Soil Moiture": 3,
@@ -20,6 +20,56 @@
             "MoistureManagement": {
                 "Attached Soil Sensors": [
                     "Sensor1"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor2"
+                ],
+                "Manual Water Time": 20,
+                "Watering Timeout Minutes": 30,
+                "Timeout Cooldown": 20,
+                "Watering Disabled": false,
+                "Control Limits": {
+                    "UCL": 25,
+                    "LCL": 20
+                }
+            },
+            "BD Inhibiting": {
+                "Attached BD Sensors": [],
+                "BD Enable": true,
+                "BD Alarm Alert": 30
+            },
+            "Schedule": {
+                "On Time": "00:00",
+                "Off Time": "23:59",
+                "Enabled": false
+            }
+        },
+        {
+            "MoistureManagement": {
+                "Attached Soil Sensors": [
+                    "Sensor3"
                 ],
                 "Manual Water Time": 20,
                 "Watering Timeout Minutes": 30,

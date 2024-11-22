@@ -1,3 +1,5 @@
+import os
+from configGenerator import load_json
 # data file paths
 
 # generate data strcutures
@@ -38,10 +40,10 @@ APPASSWORD='123456789'
 
 
 #-------------------------------SYSTEM data ---------------------------#
-CONFIGFILEPATH = "Data/irrigation_system_config.json"
-BDSENSORLOG = "System Files/Data/BDSensor.csv"
-SMSENSORLOG = "System Files/Data/SoilMoistureSensor.csv"
-SYSLOGS = "System Files/Data/SystemLogs.csv"
+CONFIGFILEPATH = "./System Files/Data/irrigation_system_config.json"
+BDSENSORLOG = "./System Files/Data/BDSensor.csv"
+SMSENSORLOG = "./System Files/Data/SoilMoistureSensor.csv"
+SYSLOGS = "./System Files/Data/SystemLogs.csv"
 SMDATAPOINTS = 10
 BDDATAPOINTS = 10
 HARDWAREINPUTFREQUENCY = 4
@@ -53,10 +55,10 @@ HARDWAREINPUTFREQUENCY = 4
 
 
 
-SoilMoisturePins = [32, 33, 34]  # Replace with your ADC pin numbers
-BodyDetectionPins = [25, 26]  # Replace with your digital pin numbers
+SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
+BodyDetectionPins = [18, 4]  # Replace with your digital pin numbers
 
-solenoidControlPins = [12, 13, 14] 
+solenoidControlPins = [27, 26, 25] 
 
 
 
@@ -65,9 +67,8 @@ ZONES = SMSENSORS
 BDSENSORS = len(BodyDetectionPins)
 
 
-systemConfigParameters = {
-
-} # holds all the current config paramters for comparison
+systemConfigParameters = load_json()
+ # holds all the current config paramters for comparison
 
 # data points
 
@@ -79,50 +80,26 @@ default_zone = {
     "SMaverage": None,
     "BDstate": "OFF",
     "WateringState": "OFF",
-    "WateringWatch": "watch dog here",
-    "BDwatch": "watch dog here"
+    "WateringWatch": None,
+    "WateringCooldown": None, #or none for forcing user to clear
+    "BDwatch": None,
+    "tog-clr": 0
 }
 
 # Create a list of zones based on the number of zones (length of the pin array)
 systemExecute = {
-    "Mode": "man",  # Or "auto", depending on your mode
+    "Mode": "man",  # Or "auto", depending on your mode that is set by server but defaults to manual on boot
+    "WateringList": [], 
+    "ntpConnectionNeeded": 0,
+    "NewConfig": 0, #server sets and system logic unsets
     "Zones": [default_zone.copy() for _ in range(len(SoilMoisturePins))]  # Duplicate the zone for each pin
 }
 
-"""
-systemExecute = {
-    "Mode": "man", #or "man"
-    "Zones": [
-        {
-            "SMaverage": null,
-            "BDstate": "OFF",
-            "WateringState": "OFF",
-            "WateringWatch": "watch dog here",
-            "BDwatch": "watch dog here"
-        }, #make one for each zone
-        {
-            "SMaverage": 20,
-            "BDstate": "ON",
-            "WateringState": "OFF",
-            "WateringWatch": "watch dog here",
-            "BDwatch": "watch dog here"
-        }, #make one for each zone
-        {
-            "SMaverage": 20,
-            "BDstate": "ON",
-            "WateringState": "OFF",
-            "WateringWatch": "watch dog here",
-            "BDwatch": "watch dog here"
-        }, #make one for each zone
-    ]
-}
-"""
 
 
 
 
 
-serverRequests = [] #[(modeToggle), (zone1Toggle), (zone2Toggle), ...]
 serverUpdates = []
 
 
@@ -143,3 +120,43 @@ def systemExecuteInit():
     # initialize server requests with number of zeros corresponding to config update, zone toggle,  
     
     # initialize system config parameters with json library
+
+
+
+
+def replace_json_in_html(new_json):
+    
+    try:
+        # Open the HTML file
+        with open(CONFIGFILEPATH, 'r') as f:
+            content = f.read()
+
+        # Define the placeholder for the JSON content
+        script_start = '<script id="persistentSystemData">'
+        script_end = '</script>'
+        
+        # Find the position of the script block and the JSON structure
+        start_index = content.find(script_start)
+        end_index = content.find(script_end, start_index)
+
+        if start_index == -1 or end_index == -1:
+            raise ValueError("The script with id='persistentSystemData' was not found in the HTML file.")
+
+        # The new JSON data will replace everything between the <script> tags
+        new_script = f"{script_start}\njsonData = `{new_json}`\n{script_end}"
+
+        # Replace the old JSON structure with the new one
+        updated_content = content[:start_index] + new_script + content[end_index + len(script_end):]
+
+        # Write the modified content back to the file
+        with open(CONFIGFILEPATH, 'w') as f:
+            f.write(updated_content)
+        print("HTML file updated successfully.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+
+
+replace_json_in_html(systemConfigParameters)
