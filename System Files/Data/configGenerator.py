@@ -13,9 +13,13 @@ def create_irrigation_system_config(num_sols, num_BD, file_path=filePath):
     # print(os.getcwd())
     print(f"my file path is {file_path}")
 
+    
+    
+    """
     if os.path.exists(file_path):
         print("File already exists.")
         return
+    """
 
     # Initialize the system data structure
     system_data = {
@@ -70,7 +74,7 @@ def create_irrigation_system_config(num_sols, num_BD, file_path=filePath):
 
     # Write the data to a JSON file
     with open(file_path, 'w') as f:
-        json.dump(system_data, f, indent=4)
+        json.dump(system_data, f)
 
     print(f"Config file created at {file_path}.")
 

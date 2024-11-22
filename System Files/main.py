@@ -1,4 +1,5 @@
 import time
+import os
 import sys
 import select
 import _thread
@@ -6,8 +7,8 @@ from ControlLogic.Inputs import runInputCycle
 from HMI.networkMan import setup_access_point
 from HMI.webServer import web_server_thread
 
-from Data.globalData import systemExecute
-
+from Data.globalData import systemExecute, systemConfigParameters, replace_json_in_html
+#replace_json_in_html(systemConfigParameters)
 
 
 
@@ -36,9 +37,22 @@ if __name__ == '__main__':
     while True:
         # run sampling and control
         print("the date is: " + str(time.localtime()[0]) + "-" + str(time.localtime()[1]) + "-" + str(time.localtime()[2]))
-        print(f"System Executing Data: {systemExecute}")
+        #print(f"System Executing Data: {systemExecute}")
+        
+
+
+        outputCharacters = f"""\n\n------------------System Executing Data:
+Mode: {systemExecute["Mode"]}
+Watering List: {systemExecute["WateringList"]}
+New Configuration: {systemExecute["NewConfig"]}
+NTP connection flag: {systemExecute["ntpConnectionNeeded"]}
+Zone Data: {systemExecute["Zones"]}\n\n
+"""
+        print(outputCharacters)
         #pass
         #webpage.webpage_deploy()
         print("Program Running")
-        time.sleep(10)
+        time.sleep(4)
+
+        print("\b" * len(outputCharacters))
     

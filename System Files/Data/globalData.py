@@ -1,6 +1,11 @@
 import os
 #import configGenerator
 import json
+from ControlLogic.WatchDog import WatchdogTimer
+from Data.configGenerator import create_irrigation_system_config
+import machine
+from time import sleep
+
 # data file paths
 
 # generate data strcutures
@@ -68,12 +73,20 @@ HARDWAREINPUTFREQUENCY = 4
 
 
 
-
+#SoilMoisturePins = [36, 39]
 SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
 BodyDetectionPins = [18, 4]  # Replace with your digital pin numbers
 
 solenoidControlPins = [27, 26, 25] 
+#solenoidControlPins = [27, 26]
 
+if len(SoilMoisturePins) < len(solenoidControlPins):
+    led = machine.Pin(2, machine.Pin.OUT)
+    while True:
+        print("number of moisture sensors must be greater than solenoids")
+        led.value(not led.value())
+        sleep(5)
+# trap in forever while loop with print saying SMsensors must match number of slenoids
 
 
 SMSENSORS = len(SoilMoisturePins)
@@ -85,6 +98,11 @@ systemConfigParameters = load_json(CONFIGFILEPATH)
  # holds all the current config paramters for comparison
 
 # data points
+
+if len(solenoidControlPins) != systemConfigParameters["System Data"]["totalSolenoids"]:
+    # reconfigure and reboot
+    create_irrigation_system_config(len(solenoidControlPins), len(BodyDetectionPins), file_path=CONFIGFILEPATH)
+    machine.reset()
 
 
 
@@ -100,13 +118,15 @@ default_zone = {
     "tog-clr": 0
 }
 
+
+
 # Create a list of zones based on the number of zones (length of the pin array)
 systemExecute = {
-    "Mode": "man",  # Or "auto", depending on your mode that is set by server but defaults to manual on boot
+    "Mode": "Manual",  # Or "auto", depending on your mode that is set by server but defaults to manual on boot
     "WateringList": [], 
     "ntpConnectionNeeded": 0,
     "NewConfig": 0, #server sets and system logic unsets
-    "Zones": [default_zone.copy() for _ in range(len(SoilMoisturePins))]  # Duplicate the zone for each pin
+    "Zones": [default_zone.copy() for _ in range(len(solenoidControlPins))]  # Duplicate the zone for each pin
 }
 
 
@@ -137,34 +157,39 @@ def systemExecuteInit():
 
 
 
-
 def replace_json_in_html(new_json):
-    
     try:
-        # Open the HTML file
-        with open(HTML_FILE_PATH, 'r') as f:
-            content = f.read()
-
         # Define the placeholder for the JSON content
         script_start = '<script id="persistentSystemData">'
         script_end = '</script>'
         
-        # Find the position of the script block and the JSON structure
-        start_index = content.find(script_start)
-        end_index = content.find(script_end, start_index)
+        # Prepare the new script content
+        new_script = f"{script_start}\njsonData = `{json.dumps(new_json)}`\n\npersistentSystemData = JSON.parse(jsonData){script_end}"
 
-        if start_index == -1 or end_index == -1:
-            raise ValueError("The script with id='persistentSystemData' was not found in the HTML file.")
+        # Temporary file path
+        temp_file_path = HTML_FILE_PATH + ".tmp"
 
-        # The new JSON data will replace everything between the <script> tags
-        new_script = f"{script_start}\njsonData = `{new_json}`\n{script_end}"
+        # Open the original file for reading and a temporary file for writing
+        with open(HTML_FILE_PATH, 'r') as f:
+            with open(temp_file_path, 'w') as temp_f:
+                inside_target = False
+                for line in f:
+                    if script_start in line:
+                        # Write the new script block and skip lines until the end of the target block
+                        temp_f.write(new_script + '\n')
+                        inside_target = True
+                    elif script_end in line and inside_target:
+                        # Stop skipping lines after the end of the target block
+                        inside_target = False
+                    elif not inside_target:
+                        # Copy lines as is
+                        temp_f.write(line)
 
-        # Replace the old JSON structure with the new one
-        updated_content = content[:start_index] + new_script + content[end_index + len(script_end):]
+        # Remove the original file
+        os.remove(HTML_FILE_PATH)
 
-        # Write the modified content back to the file
-        with open(HTML_FILE_PATH, 'w') as f:
-            f.write(updated_content)
+        # Rename the temporary file to the original file
+        os.rename(temp_file_path, HTML_FILE_PATH)
         print("HTML file updated successfully.")
 
     except Exception as e:
@@ -175,6 +200,4 @@ def replace_json_in_html(new_json):
 
 
 
-
-
-#replace_json_in_html(systemConfigParameters)
+replace_json_in_html(systemConfigParameters)
