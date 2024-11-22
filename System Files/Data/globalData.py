@@ -177,4 +177,4 @@ def replace_json_in_html(new_json):
 
 
 
-replace_json_in_html(systemConfigParameters)
+#replace_json_in_html(systemConfigParameters)

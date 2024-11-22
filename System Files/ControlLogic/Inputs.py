@@ -1,4 +1,4 @@
-from Data import globalData
+from Data.globalData import SoilMoisturePins, BodyDetectionPins, systemExecute, systemConfigParameters
 import _thread
 import time
 from machine import Pin, ADC
@@ -6,7 +6,7 @@ from machine import Pin, ADC
 # Configure ADC channels
 # Initialize the pins
 SMchannels = []
-for pin in globalData.SoilMoisturePins:
+for pin in SoilMoisturePins:
     adc = ADC(Pin(pin))                # Initialize ADC on the specified pin
     adc.atten(ADC.ATTN_11DB)           # Set attenuation for 0-3.3V range
     adc.width(ADC.WIDTH_12BIT)         # Use 12-bit resolution (0-4095)
@@ -14,7 +14,7 @@ for pin in globalData.SoilMoisturePins:
 
 # Configure Body Detection (Digital) Pins
 BDchannels = []
-for pin in globalData.BodyDetectionPins:
+for pin in BodyDetectionPins:
     bd_pin = Pin(pin, Pin.IN, Pin.PULL_UP)  # Use PULL_UP or PULL_DOWN as needed
     BDchannels.append(bd_pin)
 
@@ -34,9 +34,9 @@ BD_READ_FREQUENCY_MULTIPLIER = 2  # Body detection sensor is read every 2 READFR
 
 #we need to create a function to convert adc value to percentage ------------------------------------------------
 
-globalData.systemExecute["Zones"][0]["SMaverage"]
-globalData.systemExecute["Zones"][0]["BDstate"]
-globalData.systemConfigParameters # check for attached sensors???
+systemExecute["Zones"][0]["SMaverage"]
+systemExecute["Zones"][0]["BDstate"]
+systemConfigParameters # check for attached sensors???
 
 
 # Lists to hold recent readings for each sensor
@@ -78,7 +78,7 @@ def read_sensors():
         # Track and calculate averages for soil moisture every SM_AVERAGE_INTERVAL readings
         if sm_counter >= SM_AVERAGE_INTERVAL:
             for i in range(len(SMchannels)):
-                globalData.systemExecute["Zones"][i]["SMaverage"] = sum(SMdatapoints[i]) / len(SMdatapoints[i])
+                systemExecute["Zones"][i]["SMaverage"] = sum(SMdatapoints[i]) / len(SMdatapoints[i])
             sm_counter = 0
 
 
@@ -86,9 +86,9 @@ def read_sensors():
         if bd_counter >= BD_AVERAGE_INTERVAL:
             for i in range(len(BDchannels)):
                 if round(sum(SMdatapoints[i]) / len(SMdatapoints[i])) == 1:
-                    globalData.systemExecute["Zones"][i]["BDstate"] = "ON" 
+                    systemExecute["Zones"][i]["BDstate"] = "ON" 
                 else:
-                    globalData.systemExecute["Zones"][i]["BDstate"] = "OFF"
+                    systemExecute["Zones"][i]["BDstate"] = "OFF"
                 #if on and bd timer not timing set BD timer, if off reset bd timer timing
             bd_counter = 0
         

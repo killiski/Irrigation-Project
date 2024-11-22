@@ -1,8 +1,8 @@
 from machine import Pin
-from Data import globalData
+from Data.globalData import solenoidControlPins, systemExecute
 
 # Initialize solenoid control pins as digital outputs
-solenoid_pins = [Pin(pin, Pin.OUT) for pin in globalData.solenoidControlPins]
+solenoid_pins = [Pin(pin, Pin.OUT) for pin in solenoidControlPins]
 PINACTIVE = "ON"
 
 
@@ -14,7 +14,7 @@ def clear_solenoids():
 # Function to check the watering status in each zone and activate the corresponding pin
 def update_solenoids():
     # Iterate through the 'zones' list in globalData
-    for i, zone in enumerate(globalData.systemExecute["Zones"]):
+    for i, zone in enumerate(systemExecute["Zones"]):
         watering_status = zone["WateringState"]  # Get the watering status
 
         # Find the index of the zone in the solenoid pins list
