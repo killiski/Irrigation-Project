@@ -7,7 +7,7 @@ from ControlLogic.Inputs import runInputCycle
 from HMI.networkMan import setup_access_point
 from HMI.webServer import web_server_thread
 
-from Data.globalData import systemExecute, systemConfigParameters, replace_json_in_html
+from Data.globalData import systemExecute, systemConfigParameters, replace_json_in_html, clients
 #replace_json_in_html(systemConfigParameters)
 
 
@@ -41,18 +41,18 @@ if __name__ == '__main__':
         
 
 
-        outputCharacters = f"""\n\n------------------System Executing Data:
+        print(f"""\n\n------------------System Executing Data:
 Mode: {systemExecute["Mode"]}
 Watering List: {systemExecute["WateringList"]}
 New Configuration: {systemExecute["NewConfig"]}
 NTP connection flag: {systemExecute["ntpConnectionNeeded"]}
 Zone Data: {systemExecute["Zones"]}\n\n
-"""
-        print(outputCharacters)
+""")
+        print(f"clients currently connected:\n{clients}")
         #pass
         #webpage.webpage_deploy()
         print("Program Running")
         time.sleep(4)
 
-        print("\b" * len(outputCharacters))
+        
     

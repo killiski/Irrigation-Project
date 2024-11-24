@@ -75,7 +75,7 @@ def setup_access_point():
     print("Setting up Access Point...")
     ap = network.WLAN(network.AP_IF)
     ap.active(True)
-    ap.config(essid='ESP32-AccessPoint', password='123456789', authmode=network.AUTH_WPA_WPA2_PSK)
-    set_hostname(ap)  # Set the same hostname for AP
+    ap.config(essid='mbesp32AP', password='123456789', authmode=network.AUTH_WPA_WPA2_PSK)
+    #set_hostname(ap)  # Set the same hostname for AP
     print("Access Point is active. IP:", ap.ifconfig()[0])  # Default IP
     print("Free memory:", gc.mem_free())

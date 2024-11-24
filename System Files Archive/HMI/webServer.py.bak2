@@ -1,0 +1,215 @@
+# webserver
+
+#initialize data
+    #client array
+    #network connection flag
+
+
+# webserver client deploying => thread
+
+
+
+
+# client handling => thread
+    # wait for revc() bytes, if conf update flag then run client update code which adds all the clients to a list and forces them to update
+
+    # HTTP requests
+        #get available networks => lock and make all client requesting to wait
+        #connect to network => lock and make clients pass if in use
+
+        #fetch monitoring values (wifi connected, mode, [zone watering flags], )
+        #submit monitoring values (mode toggle, [zone watering flags]) => global variable
+        #fetch logs
+        #fetch 24 hour samples
+
+
+        #Update Config file => get new config file, insert into html file, redirect clients to "send html" => locking
+            #do i just remake the conf file or pop/append the zone list depending on the zones configured??
+        #send HTML => in chunks of 10kb
+
+
+import socket
+import _thread
+import time
+import os
+
+MAX_CONNECTIONS = 3
+HTML_FILE_PATH = "HMI/Irrigation System UI final.html"
+socketTimeout = 0.5  # Timeout in seconds
+
+# Global list to store active clients and their ports
+active_clients = {}
+
+# Lock for managing access to active_clients
+client_lock = _thread.allocate_lock()
+
+def client_thread(conn, addr, port):
+    global active_clients
+    print(f"New client connected: {addr}:{port}")
+    
+    conn.settimeout(None)
+
+    # Add client to active clients dictionary with (ip, port) as key
+    with client_lock:
+        # Use a tuple (addr, port) as a key to identify client
+        client_key = (addr, port)
+        if client_key in active_clients:
+            # If client already exists, reuse the connection
+            print(f"Reusing existing connection for {addr}:{port}")
+            existing_conn = active_clients[client_key]
+            #existing_conn.close()  # Close any existing connection before reusing
+        # Store the new connection
+        active_clients[addr] = port
+        
+    try:
+        # Send HTML file on connection
+        if send_html_file_in_chunks(conn, HTML_FILE_PATH) == -1:
+            print(f"Ending connection for {addr}:{port} due to file error")
+            conn.close()
+            del active_clients[addr]
+            return
+
+        while True:
+            try:
+                data = conn.recv(1024)
+                print(f"Received from {addr}:{port}: {data}")
+                print(f"Clients active: {active_clients}")
+
+                
+                if data == b'':
+                    print(f"Client @ {addr}:{port} disconnected")
+                    break
+                
+
+
+                flush_buffer(conn, socketTimeout)
+                    # You can process the received data as needed, e.g., handle requests here
+            except:
+                print(f"Client @ {addr}:{port}")
+                continue
+
+    except Exception as e:
+        print(f"Error: {e}")
+        
+    finally:
+        print(f"Ending connection for {addr}:{port}")
+        # Remove client from active clients and close the connection
+        with client_lock:
+            #if (addr, port) in active_clients:
+            del active_clients[addr]
+        conn.close()
+
+
+def web_server_thread():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('0.0.0.0', 80))
+    #server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.listen(5)
+    print("Server started on port 80")
+
+    while True:
+        # Accept new client connections
+        conn, addr = server_socket.accept()
+        addr, port = addr
+        print(f"Connection from {addr}:{port}")
+        
+        # Check if client already exists in active clients dictionary
+        with client_lock:
+            if (addr, port) in active_clients:
+                print(f"Connection already exists for {addr}:{port}. Reusing connection.")
+                conn.close()  # Close the new connection attempt
+            else:
+                # Start a new thread for each client connection
+                # conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                _thread.start_new_thread(client_thread, (conn, addr, port))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def flush_buffer(client_socket, flush_timeout=1.0):
+    """Flush the recv buffer with a temporary timeout."""
+    # Store the original timeout
+    
+    try:
+        # Set a temporary timeout for flushing
+        client_socket.settimeout(flush_timeout)
+        while True:
+            try:
+                # Attempt to read data
+                print("Flushing the buffer")
+                data = client_socket.recv(1024)
+                if not data:  # No more data to read
+                    break
+            except OSError:
+                # Timeout reached or other recv error
+                break
+    finally:
+        # Restore the original timeout
+        print("exiting")
+        client_socket.settimeout(None)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def send_html_file_in_chunks(conn, file_path, chunk_size=256):
+    """
+    Send HTML content from a file stored on disk in chunks.
+    """
+    try:
+        #file_size = os.stat(file_path)[6]
+        conn.send(b"HTTP/1.1 200 OK\r\n")
+        conn.send(b"Content-Type: text/html; charset=UTF-8\r\n")
+        conn.send(b"Connection: close\r\n")
+        #conn.send(b"Keep-Alive: timeout=60, max=100\r\n")
+        conn.send(b"Transfer-Encoding: chunked\r\n")
+        conn.send(b"\r\n")
+
+        with open(file_path, 'rb') as file:
+            while (chunk := file.read(chunk_size)):
+                conn.send(f"{len(chunk):X}\r\n".encode())
+                conn.send(chunk)
+                conn.send(b"\r\n")
+
+        conn.send(b"0\r\n\r\n")
+    except:
+        return -1
+

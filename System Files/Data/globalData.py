@@ -22,7 +22,7 @@ from time import sleep
             # UpdateConfigFlag
             # 
 
-def replace_json( newJson, file_path):
+def replace_json(newJson, file_path):
     with open(file_path, 'w') as f:
         json.dump(newJson, f, indent=4)
     return newJson
@@ -43,6 +43,8 @@ socketTimeout = 10  # Timeout in seconds
 
 # Global list to store active clients and their ports
 active_clients = []
+
+clients = {}
 
 
 
@@ -74,10 +76,15 @@ HARDWAREINPUTFREQUENCY = 4
 
 
 #SoilMoisturePins = [36, 39]
-SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
-BodyDetectionPins = [18, 4]  # Replace with your digital pin numbers
+#SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
+SoilMoisturePins = [36]
 
-solenoidControlPins = [27, 26, 25] 
+
+BodyDetectionPins = [18]
+#BodyDetectionPins = [18, 4]  # Replace with your digital pin numbers
+
+solenoidControlPins = [27] 
+#solenoidControlPins = [27, 26, 25] 
 #solenoidControlPins = [27, 26]
 
 if len(SoilMoisturePins) < len(solenoidControlPins):

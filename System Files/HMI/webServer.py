@@ -32,168 +32,222 @@ import socket
 import _thread
 import time
 import os
+from Data.globalData import clients
 
 MAX_CONNECTIONS = 3
 HTML_FILE_PATH = "HMI/Irrigation System UI final.html"
-socketTimeout = 10  # Timeout in seconds
+socketTimeout = 1  # Timeout in seconds
+sources = {}
 
 # Global list to store active clients and their ports
-active_clients = []
+#active_clients = {}
+#clients = {}
 
 # Lock for managing access to active_clients
 client_lock = _thread.allocate_lock()
 
+def client_thread(ip_address):
+    send_html_file_in_chunks(clients[ip_address][0], HTML_FILE_PATH)
+    
+    while True:
+        # Check if the IP address has any active clients
+        
+
+        
+        
+        clientEpoch = sources[ip_address]
+        clientEpoch.setblocking(False)
+        
+        
+        if len(clients[ip_address]) < 1:
+            #print("clientEpoch")
+            try:
+                if clientEpoch.recv(1024).decode('utf-8') == "":
+                    print("disconnecting client")
+
+                    del sources[ip_address]
+                    del clients[ip_address]
+                    break
+                time.sleep(0.05)
+            except:
+                continue
+
+        client_sock = clients[ip_address][0]  # Get the first socket for that IP address
+        
+        print(f"printing client socket and epoch {client_sock}  :  {clientEpoch}")
 
 
-def send_html_file_in_chunks(conn, file_path, chunk_size=256): 
+        try:
+            if clientEpoch == client_sock:
+                print("first time around")
+                request = client_sock.recv(1024).decode('utf-8')
+            else:
+                request = client_sock.recv(1024).decode('utf-8')
+                    
+            
+
+            chechVar = (client_sock == clientEpoch)
+            print(f"did client socket equal epoch socket {chechVar}")
+            
+
+
+
+            # Read from the client socket
+            #request = client_sock.read().decode('utf-8')
+            #if len(request) < 10:
+            print(request)
+            
+            
+            
+
+
+            if request:
+                pass
+                #print(f"Client Sent:\n{request}")
+                # Handle the request (here we send a simple response for demo)
+                if "GET /" in request:
+                    send_html_file_in_chunks(clients[ip_address][0], HTML_FILE_PATH)
+    
+                #client_sock.send("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello from ESP32!")
+                
+            
+            if client_sock == clientEpoch:
+                clients[ip_address].remove(client_sock)
+                continue
+            clients[ip_address].remove(client_sock)
+            client_sock.close()
+            
+
+        except Exception as e:
+            print(f"Error with client {ip_address}: {e}")
+            client_sock.close()
+            del clients[ip_address]
+            
+        
+
+
+def web_server_thread():
+    #accept clients and spawn threads
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('0.0.0.0', 80))
+    server_socket.listen(5)
+    server_socket.settimeout(socketTimeout)
+    print("Server started on port 80")
+
+    while True:
+        try:
+            client_sock, client_addr = server_socket.accept()
+            ip_address = client_addr[0]  # Get the IP address from the client address
+            
+            # Add the client socket to the dictionary for the corresponding IP address
+            if ip_address not in clients.keys():
+                clients[ip_address] = []
+                
+            else:
+                if len(clients[ip_address]) > 3:
+                    clients[ip_address].remove(client_sock)
+                    print(f"Client handling busy. discarding {client_addr[1]}")
+                    continue
+                
+                clients[ip_address].append(client_sock)
+                print(clients)
+                print("redirecting to client thread")
+                continue
+            
+            clients[ip_address].append(client_sock)
+            sources[ip_address] = client_sock
+            #sources[ip_address].setblocking(0)
+            
+            
+            # Start a new thread to handle this client IP address
+            _thread.start_new_thread(client_thread, (ip_address, ))
+        
+        except Exception as e:
+            pass
+            #print(f"Error accepting client: {e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def flush_buffer(client_socket, flush_timeout=1.0):
+    """Flush the recv buffer with a temporary timeout."""
+    # Store the original timeout
+    
+    try:
+        # Set a temporary timeout for flushing
+        client_socket.settimeout(flush_timeout)
+        while True:
+            try:
+                # Attempt to read data
+                print("Flushing the buffer")
+                data = client_socket.recv(1024)
+                if not data:  # No more data to read
+                    break
+            except OSError:
+                # Timeout reached or other recv error
+                break
+    finally:
+        # Restore the original timeout
+        print("exiting")
+        client_socket.settimeout(None)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def send_html_file_in_chunks(conn, file_path, chunk_size=256):
     """
     Send HTML content from a file stored on disk in chunks.
     """
     try:
-        file_size = os.stat(file_path)[6]
-        # Send the initial response headers with chunked transfer encoding
+        #file_size = os.stat(file_path)[6]
         conn.send(b"HTTP/1.1 200 OK\r\n")
-        conn.send(b"Content-Type: text/html; charset=UTF-8\r\n")  # Added charset
+        conn.send(b"Content-Type: text/html; charset=UTF-8\r\n")
+        #conn.send(b"Connection: close\r\n")
+        #conn.send(b"Keep-Alive: timeout=60, max=100\r\n")
         conn.send(b"Transfer-Encoding: chunked\r\n")
-        conn.send(b"Cache-Control: no-store\r\n")  # Added caching headers
-        conn.send(b"Access-Control-Allow-Origin: *\r\n")
-        conn.send(b"Pragma: no-cache\r\n")
-        conn.send(b"Expires: 0\r\n")  # Added expiry headers
         conn.send(b"\r\n")
 
-
-        # Open the file and send it in chunks
         with open(file_path, 'rb') as file:
             while (chunk := file.read(chunk_size)):
-                # Send the size of the chunk in hexadecimal
                 conn.send(f"{len(chunk):X}\r\n".encode())
-                # Send the chunk data itself
                 conn.send(chunk)
-                # Send a new line to end the chunk
                 conn.send(b"\r\n")
 
-        # Send the last zero-length chunk to indicate the end
         conn.send(b"0\r\n\r\n")
     except:
         return -1
-
-
-    """
-    except OSError as e:
-        print(f"Error opening file: {e}")
-        conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError opening file.")
-    except Exception as e:
-        print(f"Error sending file: {e}")
-        conn.send(b"HTTP/1.1 500 Internal Server Error\r\n\r\nError sending file.")
-    
-    
-    finally:
-        return
-    """
-
-
-
-
-def client_thread(conn, addr, port):
-    global active_clients
-    print(f"New client connected: {addr}:{port}")
-    
-    conn.settimeout(socketTimeout)
-
-    # Add client to active clients list
-    with client_lock:
-        # Check if client IP already exists in the list
-        existing_client = None
-        for client in active_clients:
-            print(client)
-            if client['ip'] == addr:
-                #pass
-                existing_client = client
-                #active_clients.remove(client)
-                
-        
-        
-        if existing_client:
-            # If another connection from the same client exists, remove the old one
-            active_clients.remove(existing_client)
-        
-        
-        
-        # Add the new connection as the active client
-        client_data = {'ip': addr, 'port': port, 'conn': conn, 'thread': _thread.get_ident()}
-        
-        active_clients.append(client_data)
-        if send_html_file_in_chunks(conn, HTML_FILE_PATH) == -1:
-            print(f"Ending connection for {addr}:{port} due to file error")
-            active_clients.remove(client_data)
-            return
-        print(f"Printing client data {client_data}")
-
-        
-    while True:
-        try:
-            # Here, you would handle client requests
-            data = conn.recv(1024)
-            print("the data: ", data)
-            if data == b'':
-                break
-            print("yeoo")
-            #active_clients
-
-            #print(f"Received from {addr}:{port}: {data.decode()}")
-            #conn.send(data)  # Echo data back to client
-            
-
-            with client_lock:
-                if client_data not in active_clients:
-                    print(f"Ending duplicate connection for {addr}:{port}")
-
-                    break  # Exit thread if it's an older connection from the same client
-            
-            """
-            if b"GET" in data:
-                send_html_file_in_chunks(conn, HTML_FILE_PATH)
-                continue
-            """
-
-            """
-            with client_lock:
-                if client_data in active_clients:
-                    active_clients.remove(client_data)
-            """
-
-            continue
-            #time.sleep(0.1)  # Prevent busy-waiting
-        except:
-            print(f"Printing From {addr} @ {port}: {active_clients}")
-            with client_lock:
-                if client_data not in active_clients:
-                    print(f"Ending duplicate connection for {addr}:{port}")
-                    return
-            print("No Bytes recieved")
-            continue
-        
-    # Cleanup on disconnection
-    
-    print(f"Client {addr}:{port} disconnected")
-    #print(f"active clients before removal: {active_clients}")
-    #active_clients.remove(client_data)
-    #print(f"active clients after removal: {active_clients}")
-    return
-
-def web_server_thread():
-    global active_clients
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('0.0.0.0', 80))
-    server_socket.listen(5)
-    print("Server started on port 80")
-
-    while True:
-        # Accept new client connections
-        conn, addr = server_socket.accept()
-        addr, port = addr
-        print(f"Connection from {addr}:{port}")
-        
-        # Start a new thread for each client connection
-        _thread.start_new_thread(client_thread, (conn, addr, port))
 
