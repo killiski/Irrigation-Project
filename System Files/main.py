@@ -41,18 +41,17 @@ if __name__ == '__main__':
         
 
 
-        outputCharacters = f"""\n\n------------------System Executing Data:
+        print(f"""\n\n------------------System Executing Data:
 Mode: {systemExecute["Mode"]}
+Mode Toggle: {systemExecute["ModeToggle"]}
 Watering List: {systemExecute["WateringList"]}
-New Configuration: {systemExecute["NewConfig"]}
-NTP connection flag: {systemExecute["ntpConnectionNeeded"]}
+Connected Network: {systemExecute["Connected Network"]}
+Available Networks:  {systemExecute["Available Networks"]}
 Zone Data: {systemExecute["Zones"]}\n\n
-"""
-        print(outputCharacters)
+""")
         #pass
         #webpage.webpage_deploy()
         print("Program Running")
         time.sleep(4)
 
-        print("\b" * len(outputCharacters))
     

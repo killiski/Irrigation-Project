@@ -30,7 +30,7 @@ def create_irrigation_system_config(num_sols, num_BD, file_path=filePath):
             "Simultaneous Watering": 1,
             "Hourly Samples": 1,
             "Sensors": {
-                "Soil Moiture": num_sols,
+                "Soil Moisture": num_sols,
                 "BD Detection": num_BD
             },
             "Time": {
@@ -96,4 +96,3 @@ def load_json(file_path=filePath):
 
 #myData = load_json()
 #print(myData["Zones"][0]["MoistureManagement"]["Control Limits"]["LCL"])
-

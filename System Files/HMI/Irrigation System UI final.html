@@ -1,7 +1,8 @@
 <html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
-    <title>Irrigation System UI</title>
+    <link rel="icon">
+	<title>Irrigation System UI</title>
 	<script id="persistentSystemData">
 jsonData = `{
     "System Data": {
@@ -146,9 +147,9 @@ persistentSystemData = JSON.parse(jsonData);
 		
 		.zone-name { background: #444; color: white;  width: 100%; text-align: center; font-size: 1.2rem; font-weight: bold; border-radius: 8px 8px 0 0}
         .zone-status-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%; }
-        .status, .action-button { font-size: 0.9rem; width: 45%; margin: 0.5rem 0; display: flex; align-items: center; justify-content: center; }
-        .action-button { padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .action-button:hover { background: #45a049; }
+        .status, .zoneToggleAction { font-size: 0.9rem; width: 45%; margin: 0.5rem 0; display: flex; align-items: center; justify-content: center; }
+        .zoneToggleAction { padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .zoneToggleAction { background: #45a049; }
         .moisture { font-size: 0.9rem; text-align: center;}
 
 
@@ -207,9 +208,12 @@ persistentSystemData = JSON.parse(jsonData);
 		.wifi-modal input, .wifi-modal select, .wifi-modal button { width: 100%; margin: 10px 0; padding: 8px; }
         .wifi-modal button { background: #28a745; color: #fff; border: none; cursor: pointer; }
         .wifi-modal .close-btn-modal { font-size: 2rem; position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; color: #411e1e;}
-		@media (max-aspect-ratio: 1/1) {.wifi-modal { font-size: 1.5rem !important; }} */
+		@media (max-aspect-ratio: 1/1) {.wifi-modal { font-size: 1.5rem !important; }} 
 		
-    </style>
+		#error-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: red; color: white; padding: 20px; border-radius: 5px; text-align: center; display: none; z-index: 1000; }
+	
+
+		</style>
 </head>
 <body>
     <div id="page1" class="overlay" style="display: block;">
@@ -222,7 +226,7 @@ persistentSystemData = JSON.parse(jsonData);
 			<div class="main-interface-container">
                 <div id="mode-button-container" style="background: #ccc; text-align: center">
                     <!-- Content for manual button container can go here -->
-                    <button id="mode-button" style="width: 100%; height: 100%;">Toggle for ...</button>
+                    <button onclick="sendModeToggle(this)" id="mode-button" style="width: 100%; height: 100%;">Manual</button>
                 </div>
                 <div id="zone-control-container">
                      <div class="zone-dashboard"><div class="zone-monitor-unit">
@@ -278,13 +282,18 @@ persistentSystemData = JSON.parse(jsonData);
 			</div>
 
 			<div>
+				<label for="sim-watering">Simultaneous watering: </label>
+				<input type="number" id="sim-watering" min="1" placeholder="Enter # of zones">
+			</div>
+
+			<div>
 				<label for="season-start">Season Start:</label>
-				<input type="number" id="season-start" min="0" placeholder="Enter season start (integer)">
+				<input type="number" id="season-start" min="0" max="365" placeholder="Enter season start (integer)">
 			</div>
 
 			<div>
 				<label for="season-end">Season End:</label>
-				<input type="number" id="season-end" min="0" placeholder="Enter season end (integer)">
+				<input type="number" id="season-end" min="0" max="365" placeholder="Enter season end (integer)">
 			</div>
 
 			<div>
@@ -422,6 +431,11 @@ persistentSystemData = JSON.parse(jsonData);
     </div>
 
 
+	<div id="error-modal">
+		<p id="error-modal-text"></p>
+	</div>
+
+
     <script>
         function hidePage(pageId) { document.getElementById(pageId).style.display = 'none'; }
         function showModal() { document.getElementById("wifi-modal").style.display = "block"; }
@@ -434,6 +448,20 @@ persistentSystemData = JSON.parse(jsonData);
 				myPage.querySelector('.title').textContent = `Zone ${zoneNumber} Config`;
 				updateZoneValues(zoneNumber - 1)
 			}
+		}
+
+
+		function showErrorModal(lines, duration) {
+			const modal = document.getElementById('error-modal');
+			const modalText = document.getElementById('error-modal-text');
+
+			// Convert the array to a string with line breaks
+			modalText.innerHTML = lines.join("<br><br>");
+
+			modal.style.display = 'block';
+			setTimeout(() => {
+				modal.style.display = 'none';
+			}, duration);
 		}
 		
         function updateTime() {
@@ -476,7 +504,7 @@ persistentSystemData = JSON.parse(jsonData);
 								<div class="status">Watering: <span>Active</span></div>
 								<div class="status">Enabled: <span>Yes</span></div>
 								<div class="status">Inhibiting: <span>On</span></div>
-								<button class="action-button">Toggle/Cycle</button>
+								<button class="zoneToggleAction" onclick="sendSolToggleRequests(this)">Toggle/Cycle</button>
 							</div>
 							<div class="moisture">Moisture: <span>45%</span></div>
                 `;
@@ -551,11 +579,11 @@ persistentSystemData = JSON.parse(jsonData);
 
             // Initialize select input for Attached Moisture Sensors
             const attachedSMSensors = document.getElementById("attachedSMSensors");
-            const soilSensors = zone.MoistureManagement["Attached Soil Sensors"];
+            const soilSensors = zone["MoistureManagement"]["Attached Soil Sensors"];
 			console.log(soilSensors)
             Array.from(attachedSMSensors.options).forEach((option, idx) => {
                 // Loop through the options and select the ones present in the "Attached Soil Sensors"
-				console.log(soilSensors.includes(option.value))
+				console.log(soilSensors)
                 option.selected = soilSensors.includes(option.value); // Set selected based on data
             });
 
@@ -567,14 +595,15 @@ persistentSystemData = JSON.parse(jsonData);
             document.getElementById("lcl").value = zone.MoistureManagement["Control Limits"].LCL;
 
             // Initialize checkbox for Watering Enabled
-            document.getElementById("wateringEnabled").checked = !zone.MoistureManagement["Watering Disabled"];
+            document.getElementById("wateringEnabled").checked = zone.MoistureManagement["Watering Disabled"];
 
             // Initialize Body Detection values
             const attachedBDSensors = document.getElementById("attachedBDSensors");
             const bdSensors = zone["BD Inhibiting"]["Attached BD Sensors"];
             Array.from(attachedBDSensors.options).forEach((option, idx) => {
                 // Loop through the options and select the ones present in the "Attached BD Sensors"
-                
+                //console.log(option)
+				//console.log(bdSensors)
 				option.selected = bdSensors.includes(option.value); // Set selected based on data
             });
 
@@ -605,10 +634,12 @@ persistentSystemData = JSON.parse(jsonData);
             // Dynamically add the options based on the number of available Soil Moisture sensors
             for (let i = 1; i <= soilMoistureSensorCount; i++) {
                 const option = document.createElement("option");
-                option.value = `Sensor ${i}`;
+				option.value = `Sensor${i}`;
                 option.textContent = `Sensor ${i}`;
                 attachedSMSensors.appendChild(option);
             }
+
+
 
             // Initialize the Attached BD Sensors select
             const attachedBDSensors = document.getElementById("attachedBDSensors");
@@ -620,7 +651,7 @@ persistentSystemData = JSON.parse(jsonData);
             // Dynamically add the options based on the number of available BD Detection sensors
             for (let i = 1; i <= bdDetectionSensorCount; i++) {
                 const option = document.createElement("option");
-                option.value = `Sensor ${i}`;
+                option.value = `Sensor${i}`;
                 option.textContent = `Sensor ${i}`;
                 attachedBDSensors.appendChild(option);
             }
@@ -646,26 +677,52 @@ persistentSystemData = JSON.parse(jsonData);
 
 			// Create a copy of the current system data to update
 			const updatedSystemData = JSON.parse(JSON.stringify(persistentSystemData));
-			updatedSystemDataElement = updatedSystemData["System Data"]
+			updatedSystemDataElement = updatedSystemData["System Data"];
 
 
 			// Update the copied structure with the buffered values after checking if in desried bounds
 			//updatedSystemDataElement["Configured Zones"] = newConfiguredZones; //get rid of this
-			updatedSystemDataElement["System Name"] = newSystemName;
-			updatedSystemDataElement["System Disable"] = newSystemDisable;
-			updatedSystemDataElement["Time"]["Start SZN"] = newSeasonStart;
-			updatedSystemDataElement["Time"]["End SZN"] = newSeasonEnd;
-			updatedSystemDataElement["Hourly Samples"] = newHourlySampleRate;
-
 			
+			
+			const errorLog = [];
+
+			// Validate and assign "System Name"
+			newSystemName.length > 4 && newSystemName.length < 20
+				? updatedSystemDataElement["System Name"] = newSystemName
+				: errorLog.push(`Invalid "System Name": "${newSystemName}". Must be 5-19 characters.`);
+
+			updatedSystemDataElement["System Disable"] = newSystemDisable;
+			
+			// Validate and assign "Start SZN"
+			(newSeasonStart >= 0 && newSeasonStart <= 365)
+				? updatedSystemDataElement["Time"]["Start SZN"] = newSeasonStart
+				: errorLog.push(`Invalid "Start SZN": ${newSeasonStart}. Must be between start and end day of the year.`);
+
+			// Validate and assign "End SZN"
+			(newSeasonEnd <= 365 && newSeasonEnd > newSeasonStart)
+				? updatedSystemDataElement["Time"]["End SZN"] = newSeasonEnd
+				: errorLog.push(`Invalid "End SZN": ${newSeasonEnd}. Must be less than "Start SZN" but greater than start day of the year.`);
+
+			// Validate and assign "Hourly Samples"
+			(newHourlySampleRate >= 0 && newHourlySampleRate <= 20)
+				? updatedSystemDataElement["Hourly Samples"] = newHourlySampleRate
+				: errorLog.push(`Invalid "Hourly Samples": ${newHourlySampleRate}. Must be between 0 and 20 inclusive.`);
+
 
 			// Check if the updated structure is different from the original
 			const isDataChanged = JSON.stringify(updatedSystemData) !== JSON.stringify(oldSystemData);
 
-			if (isDataChanged) {
+
+
+			if (isDataChanged && errorLog.length == 0) {
 				// If data has changed, send an HTTP request to the server
-				sendUpdateRequest();
-			} else {
+				sendUpdateRequest(updatedSystemData);
+			} else if(errorLog.length != 0){
+				console.log(errorLog.join("\n\n"))
+				showErrorModal(errorLog, 5000)
+				// i want to make a modal here
+			}
+			else {
 				console.log("No changes detected.");
 			}
 		}
@@ -680,17 +737,23 @@ persistentSystemData = JSON.parse(jsonData);
 			zoneNumber = zoneNumber - 1;
 
 			// Create a copy of the current persistentSystemData to compare later
-			const oldSystemData = JSON.parse(JSON.stringify(persistentSystemData));
+			oldSystemData = JSON.parse(JSON.stringify(persistentSystemData));
 
 			// Get the values from the form inputs
+			
+			
 			const attachedSMSensors = Array.from(document.getElementById("attachedSMSensors").selectedOptions).map(option => option.value);
+			
 			const wateringTimeout = parseInt(document.getElementById("wateringTimeout").value);
 			const timeoutCooldown = parseInt(document.getElementById("timeoutCooldown").value);
 			const wateringEnabled = document.getElementById("wateringEnabled").checked;
 			const manualWaterTime = parseInt(document.getElementById("manualWaterTime").value);
 			const ucl = parseInt(document.getElementById("ucl").value);
 			const lcl = parseInt(document.getElementById("lcl").value);
+			
+			
 			const attachedBDSensors = Array.from(document.getElementById("attachedBDSensors").selectedOptions).map(option => option.value);
+			
 			const bdEnabled = document.getElementById("bdEnabled").checked;
 			const bdAlarmAlert = parseInt(document.getElementById("bdAlarmAlert").value);
 			const onTime = document.getElementById("onTime").value;
@@ -701,53 +764,183 @@ persistentSystemData = JSON.parse(jsonData);
 
 
 
-			zoneElement = oldSystemData["Zones"][zoneNumber];
-			zoneMoistureElement = oldSystemData["Zones"][zoneNumber]["MoistureManagement"];
+			const errorLog = [];
+			
+			const updatedSystemData = JSON.parse(JSON.stringify(persistentSystemData));
+
+			newZoneElement = updatedSystemData["Zones"][zoneNumber];
+			newZoneMoistureElement = updatedSystemData["Zones"][zoneNumber]["MoistureManagement"];
 
 			// Update the specific zone in the copied structure (oldSystemData) using square brackets
-			zoneMoistureElement["Attached Soil Sensors"] = attachedSMSensors;
-			zoneMoistureElement["Manual Water Time"] = manualWaterTime;
-			zoneMoistureElement["Watering Timeout Minutes"] = wateringTimeout;
-			zoneMoistureElement["Timeout Cooldown"] = timeoutCooldown;
-			zoneMoistureElement["Watering Disabled"] = !wateringEnabled;
-			zoneMoistureElement["Control Limits"] = {};
-			zoneMoistureElement["Control Limits"]["UCL"] = ucl;
-			zoneMoistureElement["Control Limits"]["LCL"] = lcl;
+			
+			newZoneMoistureElement["Attached Soil Sensors"] = attachedSMSensors;
+			
 
-			zoneElement["BD Inhibiting"]["Attached BD Sensors"] = attachedBDSensors;
-			zoneElement["BD Inhibiting"]["BD Enable"] = bdEnabled;
-			zoneElement["BD Inhibiting"]["BD Alarm Alert"] = bdAlarmAlert;
+			
+			// removing sensors selected for other zones
 
-			zoneElement["Schedule"]["On Time"] = onTime;
-			zoneElement["Schedule"]["Off Time"] = offTime;
-			zoneElement["Schedule"]["Enabled"] = scheduleEnabled;
+			for (let i = 0; i < updatedSystemData["Zones"].length; i++) {
+				if(zoneNumber == i){
+					
+				} else{
+					updatedSystemData["Zones"][i]["MoistureManagement"]["Attached Soil Sensors"] = updatedSystemData["Zones"][i]["MoistureManagement"]["Attached Soil Sensors"].filter((sensor) => {
+						console.log(sensor + " in "+ newZoneMoistureElement["Attached Soil Sensors"] + "?")
+						console.log(newZoneMoistureElement["Attached Soil Sensors"].includes(sensor))
+						if(newZoneMoistureElement["Attached Soil Sensors"].includes(sensor)){
+							return false;
+						} else {
+							return true;
+						}
+					})
+				}
+				
+			}
+			
+
+
+			(manualWaterTime >= 0 && manualWaterTime <= 60)
+				? newZoneMoistureElement["Manual Water Time"] = manualWaterTime
+				: errorLog.push(`Invalid "Manual Water Time": ${manualWaterTime}. Must be between 0 and 60.`);
+
+			// Validate and assign "Watering Timeout Minutes"
+			(wateringTimeout >= 0 && wateringTimeout <= 60)
+				? newZoneMoistureElement["Watering Timeout Minutes"] = wateringTimeout
+				: errorLog.push(`Invalid "Watering Timeout Minutes": ${wateringTimeout}. Must be between 0 and 60.`);
+
+			// Validate and assign "Timeout Cooldown"
+			(timeoutCooldown >= 0 && timeoutCooldown <= 60)
+				? newZoneMoistureElement["Timeout Cooldown"] = timeoutCooldown
+				: errorLog.push(`Invalid "Timeout Cooldown": ${timeoutCooldown}. Must be between 0 and 60.`);
+
+			
+			newZoneMoistureElement["Watering Disabled"] = wateringEnabled;
+			
+			
+
+			if (ucl >= 0 && ucl <= 100 && lcl >= 0 && lcl <= ucl) {
+				newZoneMoistureElement["Control Limits"]["UCL"] = ucl;
+				newZoneMoistureElement["Control Limits"]["LCL"] = lcl;
+			} else {
+				if (ucl < 0 || ucl > 100) 
+					errorLog.push(`Invalid "UCL": ${ucl}. Must be between 0 and 100.`);
+				if (lcl < 0 || lcl > ucl) 
+					errorLog.push(`Invalid "LCL": ${lcl}. Must be between 0 and UCL (${ucl}).`);
+			}
+
+			
+			
+			
+			newZoneElement["BD Inhibiting"]["Attached BD Sensors"] = attachedBDSensors;
+			newZoneElement["BD Inhibiting"]["BD Enable"] = bdEnabled;
+			
+
+			for (let i = 0; i < updatedSystemData["Zones"].length; i++) {
+				if(zoneNumber == i){
+					
+				} else{
+					updatedSystemData["Zones"][i]["BD Inhibiting"]["Attached BD Sensors"] = updatedSystemData["Zones"][i]["BD Inhibiting"]["Attached BD Sensors"].filter((sensor) => {
+						console.log(sensor + " in "+ newZoneElement["BD Inhibiting"]["Attached BD Sensors"] + "?")
+						console.log(newZoneElement["BD Inhibiting"]["Attached BD Sensors"].includes(sensor))
+						if(newZoneElement["BD Inhibiting"]["Attached BD Sensors"].includes(sensor)){
+							return false;
+						} else{
+							return true;
+						}
+					})
+				}
+				
+			}
+			
+
+			
+			//newZoneElement["BD Inhibiting"]["BD Alarm Alert"] = bdAlarmAlert;
+			(bdAlarmAlert >= 0 && bdAlarmAlert <= 60)
+				? newZoneElement["BD Inhibiting"]["BD Alarm Alert"] = bdAlarmAlert
+				: errorLog.push(`Invalid "BD Alarm Alert": ${bdAlarmAlert}. Must be between 0 and 60.`);
+
+
+
+			newZoneElement["Schedule"]["On Time"] = onTime;
+			newZoneElement["Schedule"]["Off Time"] = offTime;
+			newZoneElement["Schedule"]["Enabled"] = scheduleEnabled;
 			
 
 			// Check if the updated structure is different from the original
-			const isDataChanged = JSON.stringify(oldSystemData) !== JSON.stringify(persistentSystemData);
+			const isDataChanged = JSON.stringify(oldSystemData) !== JSON.stringify(updatedSystemData);
+			
 
-			if (isDataChanged) {
+			updatedSystemData["Zones"].forEach((zone) => console.log("Soil moisture: " + zone["MoistureManagement"]["Attached Soil Sensors"] + "\nBD detectors: " + zone["BD Inhibiting"]["Attached BD Sensors"]))
+			
+			oldSystemData["Zones"].forEach((zone) => console.log("Soil moisture: " + zone["MoistureManagement"]["Attached Soil Sensors"] + "\nBD detectors: " + zone["BD Inhibiting"]["Attached BD Sensors"]))
+			
+			//console.log(JSON.stringify(oldSystemData.forEach(zone => )) , "\n\n\n", JSON.stringify(oldSystemData))
+
+			if (isDataChanged && errorLog.length == 0) {
 				// If data has changed, send an HTTP request to the server
-				sendUpdateRequest();
-			} else {
+				sendUpdateRequest(updatedSystemData);
+			} else if(errorLog.length != 0){
+				console.log(errorLog.join("\n\n"));
+				showErrorModal(errorLog, 5000);
+				// i want to make a modal here
+			}
+			else {
 				console.log("No changes detected.");
 			}
 		}
 
 		
 		// Function to send an HTTP request to the server
-		function sendUpdateRequest() {
+		function sendUpdateRequest(newJson) {
 			const request = new XMLHttpRequest();
 			request.open("POST", "/configUpdate", true); // Adjust URL as needed for your server
 			request.setRequestHeader("Content-Type", "application/json");
 
 			// Send the updated persistentSystemData as a JSON string
-			request.send(JSON.stringify(persistentSystemData));
+			request.send(JSON.stringify(newJson));
 
 			request.onload = function() {
 				if (request.status === 200) {
 					// call load json file
 					// call zone config and system config update
+					
+					console.log("Data successfully updated on the server.");
+				} else {
+					console.log("Error updating data on the server.");
+				}
+			};
+		}
+
+
+		function sendSolToggleRequests(element){
+			const request = new XMLHttpRequest();
+			request.open("POST", "/solToggle", true);
+			request.setRequestHeader("Content-Type", "application/json");
+
+			zoneNumber = element.closest(".zone-monitor-unit").getElementsByClassName("zone-name")[0].innerText.match(/\d/)[0];
+
+			request.send(zoneNumber);
+
+			request.onload = function() {
+				if (request.status === 200) {
+					console.log("Data successfully updated on the server.");
+				} else {
+					console.log("Error updating data on the server.");
+				}
+			};
+		}
+
+
+		function sendModeToggle() {
+			const request = new XMLHttpRequest();
+			request.open("POST", "/modeToggle", true);
+			request.setRequestHeader("Content-Type", "application/json");
+
+
+			currentMode = document.getElementById("mode-button").innerText
+			request.send(currentMode);
+
+			request.onload = function() {
+				if (request.status === 200) {
 					console.log("Data successfully updated on the server.");
 				} else {
 					console.log("Error updating data on the server.");
@@ -756,8 +949,87 @@ persistentSystemData = JSON.parse(jsonData);
 		}
 		
 		
+		function sysPeriodicUpdate() {
+			//recieve system config data check against pages system config data
+				//if different then store and call zoneconfig and system config
+			//recieve exec structure
+				//parse and do logic to get data where it needs to be
+					//loop through each zone
+						//add attached sm sensors to display tag => add colours to display out of bounds if you have time
+						//set watering status
+							//active
+							//inactve
+							//inhibited
+							//standing by
+						//if system or zone disabled the enabled is no
+						//if bd on enabled then on
+					//if ntp connection then show canvas and load javascript
+					//place wifi network ssid in tag
+					//place scanned ssid's in select input
+					//parse mode
+						//if auto mode => red with "auto" text
+						//if man mode => man with "man" text
+		}
+
+
+
+		function getSysMonitor() {
+			// update mode toggle button with blue for man and red for auto
+			// update each zone moisture readings with all attached sensor averages. colour if oustide bounds and give S# label
+			// 
+		} //call every 1 second
+
+		function getSM_DataPoints() {
+
+		}
+
+		function getSystemLogs() {
+
+		}
+
+
 		
-		
+
+		function submitNetworkID() {
+			const request = new XMLHttpRequest();
+			request.open("POST", "/submitNetworkID", true);
+			request.setRequestHeader("Content-Type", "application/json");
+
+
+			SSID = document.getElementById("ssid").value;
+			Username = document.getElementById("username").value;
+			Password = document.getElementById("password").value;
+
+
+			request.send(`SSID: ${SSID}, Username: ${Username}, Password: ${Password}`)
+			
+			//network connection packaged in periodic system exec function
+			request.onload = function() {
+				if (request.status === 200) {
+					console.log("Data successfully updated on the server.");
+				} else {
+					console.log("Error updating data on the server.");
+				}
+			};
+		}
+
+		function scanNetworks() {
+			const request = new XMLHttpRequest();
+			request.open("POST", "/scanNetworks", true);
+			request.setRequestHeader("Content-Type", "application/json");
+
+
+			request.send("I wanna scan da networks");
+
+			//need to get networks scanned or maybe could package in periodic system execute function
+			request.onload = function() {
+				if (request.status === 200) {
+					console.log("Data successfully updated on the server.");
+				} else {
+					console.log("Error updating data on the server.");
+				}
+			};
+		}
 		
 		window.addEventListener('load', function() {
 			generateZoneConfigButtons();

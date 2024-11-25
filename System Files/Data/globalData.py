@@ -22,7 +22,7 @@ from time import sleep
             # UpdateConfigFlag
             # 
 
-def replace_json( newJson, file_path):
+def replace_json(newJson, file_path):
     with open(file_path, 'w') as f:
         json.dump(newJson, f, indent=4)
     return newJson
@@ -43,6 +43,8 @@ socketTimeout = 10  # Timeout in seconds
 
 # Global list to store active clients and their ports
 active_clients = []
+
+clients = {}
 
 
 
@@ -73,12 +75,17 @@ HARDWAREINPUTFREQUENCY = 4
 
 
 
-#SoilMoisturePins = [36, 39]
-SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
+SoilMoisturePins = [36, 39]
+#SoilMoisturePins = [36, 39, 34]  # Replace with your ADC pin numbers
+#SoilMoisturePins = [36]
+
+
+#BodyDetectionPins = [18]
 BodyDetectionPins = [18, 4]  # Replace with your digital pin numbers
 
-solenoidControlPins = [27, 26, 25] 
-#solenoidControlPins = [27, 26]
+#solenoidControlPins = [27] 
+#solenoidControlPins = [27, 26, 25] 
+solenoidControlPins = [27, 26]
 
 if len(SoilMoisturePins) < len(solenoidControlPins):
     led = machine.Pin(2, machine.Pin.OUT)
@@ -123,14 +130,27 @@ default_zone = {
 # Create a list of zones based on the number of zones (length of the pin array)
 systemExecute = {
     "Mode": "Manual",  # Or "auto", depending on your mode that is set by server but defaults to manual on boot
-    "WateringList": [], 
-    "ntpConnectionNeeded": 0,
-    "NewConfig": 0, #server sets and system logic unsets
+    "ModeToggle": 0,
+    "WateringList": [], #add zone that need watering but now enough water pressure or maybe just add current watering
+    "Connected Network": "",
+    "Available Networks": "", 
     "Zones": [default_zone.copy() for _ in range(len(solenoidControlPins))]  # Duplicate the zone for each pin
 }
 
 
 
+
+
+"""
+systemExecute = {
+    "Mode": "Manual",  # Or "auto", depending on your mode that is set by server but defaults to manual on boot
+    "ModeToggle": 0,
+    "WateringList": [], 
+    "ntpConnectionNeeded": 0,
+    "NewConfig": 0, #server sets and system logic unsets
+    "Zones": [default_zone.copy() for _ in range(len(solenoidControlPins))]  # Duplicate the zone for each pin
+}
+"""
 
 
 
